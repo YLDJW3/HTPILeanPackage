@@ -328,7 +328,7 @@ theorem Theorem_3_4_7 :
 
 theorem Example_3_5_4 (x : Real) (h1 : x ≤ x ^ 2) : x ≤ 0 ∨ 1 ≤ x := by
   or_right with h2     --h2 : ¬x ≤ 0;  Goal : 1 ≤ x
-  have h3 : 0 < x := lt_of_not_le h2
+  have h3 : 0 < x := lt_of_not_ge h2
   have h4 : 1 * x ≤ x * x :=
     calc 1 * x
       _ = x := one_mul x

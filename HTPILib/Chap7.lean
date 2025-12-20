@@ -10,7 +10,6 @@ lemma mod_succ_lt (a n : Nat) : a % (n + 1) < n + 1 := by
   show a % (n + 1) < n + 1 from Nat.mod_lt a h
   done
 
-@[semireducible]
 def gcd (a b : Nat) : Nat :=
   match b with
     | 0 => a
@@ -20,7 +19,6 @@ def gcd (a b : Nat) : Nat :=
   termination_by b
 
 mutual
-  @[semireducible]
   def gcd_c1 (a b : Nat) : Int :=
     match b with
       | 0 => 1
@@ -30,7 +28,6 @@ mutual
           --Corresponds to s = t'
     termination_by b
 
-  @[semireducible]
   def gcd_c2 (a b : Nat) : Int :=
     match b with
       | 0 => 0
@@ -139,12 +136,17 @@ theorem dvd_a_of_dvd_b_mod {a b d : Nat}
 
 #eval gcd 672 161    --Answer: 7
 
-lemma gcd_base (a : Nat) : gcd a 0 = a := by rfl
+lemma gcd_base (a : Nat) : gcd a 0 = a := by
+  rewrite [gcd]    --Goal : a = a
+  rfl
+  done
 
 lemma gcd_nonzero (a : Nat) {b : Nat} (h : b ≠ 0) :
     gcd a b = gcd b (a % b) := by
   obtain (n : Nat) (h2 : b = n + 1) from exists_eq_add_one_of_ne_zero h
   rewrite [h2]   --Goal : gcd a (n + 1) = gcd (n + 1) (a % (n + 1))
+  rewrite [gcd]
+      --Goal : gcd (n + 1) (a % (n + 1)) = gcd (n + 1) (a % (n + 1))
   rfl
   done
 
@@ -165,7 +167,7 @@ theorem gcd_dvd : ∀ (b a : Nat), (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
   fix a : Nat
   by_cases h1 : b = 0
   · -- Case 1. h1 : b = 0
-    rewrite [h1, gcd_base]   --Goal: a ∣ a ∧ a ∣ 0
+    rewrite [h1, gcd_base]   --Goal : a ∣ a ∧ a ∣ 0
     apply And.intro (dvd_self a)
     define
     apply Exists.intro 0
@@ -186,21 +188,27 @@ theorem gcd_dvd_left (a b : Nat) : (gcd a b) ∣ a := (gcd_dvd b a).left
 
 theorem gcd_dvd_right (a b : Nat) : (gcd a b) ∣ b := (gcd_dvd b a).right
 
-lemma gcd_c1_base (a : Nat) : gcd_c1 a 0 = 1 := by rfl
+lemma gcd_c1_base (a : Nat) : gcd_c1 a 0 = 1 := by
+  rewrite [gcd_c1]
+  rfl
+  done
 
 lemma gcd_c1_nonzero (a : Nat) {b : Nat} (h : b ≠ 0) :
     gcd_c1 a b = gcd_c2 b (a % b) := by
   obtain (n : Nat) (h2 : b = n + 1) from exists_eq_add_one_of_ne_zero h
-  rewrite [h2]
+  rewrite [h2, gcd_c1]
   rfl
   done
 
-lemma gcd_c2_base (a : Nat) : gcd_c2 a 0 = 0 := by rfl
+lemma gcd_c2_base (a : Nat) : gcd_c2 a 0 = 0 := by
+  rewrite [gcd_c2]
+  rfl
+  done
 
 lemma gcd_c2_nonzero (a : Nat) {b : Nat} (h : b ≠ 0) :
     gcd_c2 a b = gcd_c1 b (a % b) - (gcd_c2 b (a % b)) * ↑(a / b) := by
   obtain (n : Nat) (h2 : b = n + 1) from exists_eq_add_one_of_ne_zero h
-  rewrite [h2]
+  rewrite [h2, gcd_c2]
   rfl
   done
 
@@ -964,7 +972,7 @@ lemma mod_lt (m : Nat) [NeZero m] (a : Int) : a % m < m := by
 
 lemma congr_mod_mod (m : Nat) (a : Int) : a ≡ a % m (MOD m) := by
   define
-  have h1 : m * (a / m) + a % m = a := Int.ediv_add_emod a m
+  have h1 : m * (a / m) + a % m = a := Int.mul_ediv_add_emod a m
   apply Exists.intro (a / m)
   show a - a % m = m * (a / m) from
     calc a - (a % m)
@@ -1725,7 +1733,7 @@ lemma phi_prime {p : Nat} (h1 : prime p) : phi p = p - 1 := by
 theorem Theorem_7_2_2_Int {a c : Nat} {b : Int}
     (h1 : ↑c ∣ ↑a * b) (h2 : rel_prime a c) : ↑c ∣ b := by
   rewrite [Int.natCast_dvd, Int.natAbs_mul,
-    Int.natAbs_ofNat] at h1        --h1 : c ∣ a * Int.natAbs b
+    Int.natAbs_natCast] at h1      --h1 : c ∣ a * Int.natAbs b
   rewrite [Int.natCast_dvd]        --Goal : c ∣ Int.natAbs b
   show c ∣ Int.natAbs b from Theorem_7_2_2 h1 h2
   done
