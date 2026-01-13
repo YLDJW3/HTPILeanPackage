@@ -263,24 +263,95 @@ theorem Exercise_4_3_19 {A : Type} (R : BinRel A) (S : BinRel (Set A))
 
 /- Section 4.4 -/
 -- 1.
-theorem Example_4_4_3_1 {A : Type} : partial_order (sub A) := sorry
+theorem Example_4_4_3_1 {A : Type} : partial_order (sub A) := by
+    define; apply And.intro
+    ·   -- reflexive
+        define; fix X; define; fix a; assume h; exact h
+    ·   apply And.intro
+        ·   -- transitive
+            define; fix X; fix Y; fix Z; assume hXY; assume hYZ
+            define; fix a; assume hx
+            define at hXY; apply hXY at hx; clear hXY
+            define at hYZ; apply hYZ at hx; clear hYZ
+            apply hx
+        ·   -- antisymmetric
+            define; fix X; fix Y; assume hXY; assume hYX
+            define at hXY
+            define at hYX
+            apply Set.ext; fix a
+            apply Iff.intro
+            ·   assume h; apply hXY; exact h
+            ·   assume h; apply hYX; exact h
+    done
 
 -- 2.
 theorem Theorem_4_4_6_1 {A : Type} (R : BinRel A) (B : Set A) (b : A)
     (h1 : partial_order R) (h2 : smallestElt R b B) :
-    ∀ (c : A), smallestElt R c B → b = c := sorry
+    ∀ (c : A), smallestElt R c B → b = c := by
+    fix a; define at h2
+    assume h; define at h
+    have ha := h.left; apply h2.right at ha
+    have hb := h2.left; apply h.right at hb
+    clear h; clear h2
+    define at h1; have h2 := h1.right.right; define at h2
+    apply h2; apply ha; apply hb
+    done
 
 -- 3.
 --If F is a set of sets, then ⋃₀ F is the lub of F in the subset ordering
 theorem Theorem_4_4_11 {A : Type} (F : Set (Set A)) :
-    lub (sub A) (⋃₀ F) F := sorry
+    lub (sub A) (⋃₀ F) F := by
+    define; apply And.intro
+    ·   define; fix X; assume h; define; fix x; assume hx
+        define; exists X
+    ·   fix X; assume h; define at h
+        define; fix x; assume h1; define at h1
+        obtain Y h2 from h1; clear h1
+        have h1 := h2.left; apply h at h1; define at h1
+        apply h1; exact h2.right
+    done
 
 -- 4.
 theorem Exercise_4_4_8 {A B : Type} (R : BinRel A) (S : BinRel B)
     (T : BinRel (A × B)) (h1 : partial_order R) (h2 : partial_order S)
     (h3 : ∀ (a a' : A) (b b' : B),
       T (a, b) (a', b') ↔ R a a' ∧ S b b') :
-    partial_order T := sorry
+    partial_order T := by
+    define at h1; define at h2
+    define; apply And.intro
+    ·   --reflexivity
+        define; fix (a, b); rw [h3]
+        have h1' := h1.left; define at h1'
+        have h2' := h2.left; define at h2'
+        apply And.intro
+        apply h1'; apply h2'
+    ·   apply And.intro
+        ·   --transitivity
+            define; fix Px; fix Py; fix Pz
+            assume hxy; assume hyz
+            rw [h3]
+            rw [h3] at hxy; rw [h3] at hyz
+            have h1' := h1.right.left; define at h1'
+            have h2' := h2.right.left; define at h2'
+            apply And.intro
+            ·   apply h1' Px.1 Py.1 Pz.1
+                apply hxy.left; apply hyz.left
+            ·   apply h2' Px.2 Py.2 Pz.2
+                apply hxy.right; apply hyz.right
+        ·   -- antisymmetric
+            define; fix (x1, x2); fix (y1, y2)
+            assume Pxy; assume Pyx
+            have h1' := h1.right.right; define at h1'
+            have h2' := h2.right.right; define at h2'
+            rw [h3] at Pxy; rw [h3] at Pyx
+            have hxy1 : x1 = y1 := by
+                apply h1' x1 y1 Pxy.left Pyx.left
+                done
+            have hxy2 : x2 = y2 := by
+                apply h2' x2 y2 Pxy.right Pyx.right
+                done
+            rw [hxy1, hxy2]
+    done
 
 -- 5.
 theorem Exercise_4_4_9_part {A B : Type} (R : BinRel A) (S : BinRel B)
@@ -288,38 +359,138 @@ theorem Exercise_4_4_9_part {A B : Type} (R : BinRel A) (S : BinRel B)
     (h3 : ∀ (a a' : A) (b b' : B),
       L (a, b) (a', b') ↔ R a a' ∧ (a = a' → S b b')) :
     ∀ (a a' : A) (b b' : B),
-      L (a, b) (a', b') ∨ L (a', b') (a, b) := sorry
+      L (a, b) (a', b') ∨ L (a', b') (a, b) := by
+      fix a; fix a'; fix b; fix b'
+      define at h1; define at h2
+      have hr := h1.right; have hs := h2.right
+      have hpr := h1.left; define at hpr; clear h1
+      have hps := h2.left; define at hps; clear h2
+      have h4 := by apply hr a a'
+      have h5 := by apply hs b b'
+      by_cases h : a = a'
+      · -- a = a'
+        rw [←h]
+        by_cases on h5
+        · apply Or.inl; rw [h3]; apply And.intro
+          apply hpr.left
+          assume ha; apply h5
+        · apply Or.inr; rw [h3]; apply And.intro
+          apply hpr.left
+          assume ha; apply h5
+      · -- a ≠ a'
+        by_cases on h4
+        · apply Or.inl; rw [h3]; apply And.intro h4
+          assume ha; contradict h; apply ha
+        · apply Or.inr; rw [h3]; apply And.intro h4
+          assume ha; contradict h; rw [ha]
+      done
 
 -- 6.
 theorem Exercise_4_4_15a {A : Type}
     (R1 R2 : BinRel A) (B : Set A) (b : A)
     (h1 : partial_order R1) (h2 : partial_order R2)
     (h3 : extension R1 ⊆ extension R2) :
-    smallestElt R1 b B → smallestElt R2 b B := sorry
+    smallestElt R1 b B → smallestElt R2 b B := by
+    assume h; define at h
+    define; apply And.intro h.left _; fix x
+    assume hx
+    have h4 := by apply h.right x hx
+    define at h3
+    have h5 : (b, x) ∈ extension R1 := by
+        define; exact h4
+        done
+    clear h4
+    apply h3 at h5; define at h5; exact h5
+    done
 
 -- 7.
 theorem Exercise_4_4_15b {A : Type}
     (R1 R2 : BinRel A) (B : Set A) (b : A)
     (h1 : partial_order R1) (h2 : partial_order R2)
     (h3 : extension R1 ⊆ extension R2) :
-    minimalElt R2 b B → minimalElt R1 b B := sorry
+    minimalElt R2 b B → minimalElt R1 b B := by
+    assume h; define at h
+    have h4 := h.right; quant_neg at h4
+    have h5 := h.left; clear h
+    define; apply And.intro h5
+    by_contra h; obtain x hx from h; clear h
+    define at h3
+    have h6 : (x, b) ∈ extension R1 := by
+        define; apply hx.right.left
+        done
+    apply h3 at h6; define at h6
+    contradict h4; quant_neg; exists x
+    apply And.intro hx.left
+    apply And.intro h6 hx.right.right
+    done
 
 -- 8.
 theorem Exercise_4_4_18a {A : Type}
     (R : BinRel A) (B1 B2 : Set A) (h1 : partial_order R)
     (h2 : ∀ x ∈ B1, ∃ y ∈ B2, R x y) (h3 : ∀ x ∈ B2, ∃ y ∈ B1, R x y) :
-    ∀ (x : A), upperBd R x B1 ↔ upperBd R x B2 := sorry
+    ∀ (x : A), upperBd R x B1 ↔ upperBd R x B2 := by
+    fix x; apply Iff.intro
+    ·   assume h; define at h
+        define; fix y; assume hy
+        apply h3 at hy; obtain z hz from hy; clear hy
+        have h4 := hz.left; apply h at h4; clear h
+        define at h1; have ht := h1.right.left; define at ht
+        have h := by apply ht y z x hz.right h4
+        apply h
+    ·   assume h; define at h
+        define; fix y; assume hy
+        apply h2 at hy; obtain z hz from hy; clear hy
+        have h4 := hz.left; apply h at h4; clear h
+        define at h1; have ht := h1.right.left; define at ht
+        have h := by apply ht y z x hz.right h4
+        apply h
+    done
 
 -- 9.
 theorem Exercise_4_4_22 {A : Type}
     (R : BinRel A) (B1 B2 : Set A) (x1 x2 : A)
     (h1 : partial_order R) (h2 : lub R x1 B1) (h3 : lub R x2 B2) :
-    B1 ⊆ B2 → R x1 x2 := sorry
+    B1 ⊆ B2 → R x1 x2 := by
+    assume h; define at h
+    define at h2; have h2l := h2.left; define at h2l
+    define at h3; have h3l := h3.left; define at h3l
+    have h2r := h2.right; clear h2
+    have h3r := h3.right; clear h3
+    have h4 : ∀ x ∈ B1, R x x2 := by
+        fix x; assume hx; apply h at hx
+        apply h3l at hx; exact hx
+        done
+    apply h2r; define; apply h4
+    done
 
 -- 10.
 theorem Exercise_4_4_24 {A : Type} (R : Set (A × A)) :
     smallestElt (sub (A × A)) (R ∪ (inv R))
-    {T : Set (A × A) | R ⊆ T ∧ symmetric (RelFromExt T)} := sorry
+    {T : Set (A × A) | R ⊆ T ∧ symmetric (RelFromExt T)} := by
+    define; apply And.intro
+    ·   --left
+        define; apply And.intro
+        ·   define; fix a; assume ha
+            define; apply Or.inl ha
+        ·   define; fix x; fix y; assume h
+            define; define at h
+            by_cases on h
+            ·   apply Or.inr; define; apply h
+            ·   apply Or.inl; define at h; exact h
+    ·   -- right
+        fix x; assume h; define at h
+        define; fix (a, b); assume ha; define at ha
+        by_cases on ha
+        ·   have hl := h.left; define at hl; apply hl; apply ha
+        ·   have hr := h.right; define at hr; define at ha
+            have h1 : RelFromExt x b a := by
+                define; have hl := h.left; define at hl
+                apply hl; exact ha
+                done
+            have h2 := by apply hr b a h1
+            define at h2; exact h2
+    done
+
 
 /- Section 4.5 -/
 -- 1.
