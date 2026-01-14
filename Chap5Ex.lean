@@ -118,51 +118,187 @@ theorem Exercise_5_1_17b {A : Type} (f : A → A) (a : A)
 /- Section 5.2 -/
 -- 1.
 theorem Exercise_5_2_10a {A B C : Type} (f: A → B) (g : B → C) :
-    onto (g ∘ f) → onto g := sorry
+    onto (g ∘ f) → onto g := by
+    assume h; define at h
+    define; fix c
+    have hc := by apply h c
+    obtain a ha from hc; clear hc
+    exists (f a)
+    done
 
 -- 2.
 theorem Exercise_5_2_10b {A B C : Type} (f: A → B) (g : B → C) :
-    one_to_one (g ∘ f) → one_to_one f := sorry
+    one_to_one (g ∘ f) → one_to_one f := by
+    assume h; define at h
+    define; fix a1; fix a2; assume h1
+    apply h
+    rw [comp_def, comp_def, h1]
+    done
 
 -- 3.
 theorem Exercise_5_2_11a {A B C : Type} (f: A → B) (g : B → C) :
-    onto f → ¬(one_to_one g) → ¬(one_to_one (g ∘ f)) := sorry
+    onto f → ¬(one_to_one g) → ¬(one_to_one (g ∘ f)) := by
+    assume h1; assume h2
+    by_contra h3; contradict h2; clear h2
+    define at h1
+    define at h3
+    define; fix b1; fix b2; assume h4
+    obtain a1 ha1 from h1 b1
+    obtain a2 ha2 from h1 b2
+    clear h1
+    have h := by
+        apply h3 a1 a2
+        rw[comp_def, comp_def, ha1, ha2]
+        apply h4
+    rw [← ha1, ← ha2, h]
+    done
 
 -- 4.
 theorem Exercise_5_2_11b {A B C : Type} (f: A → B) (g : B → C) :
-    ¬(onto f) → one_to_one g → ¬(onto (g ∘ f)) := sorry
+    ¬(onto f) → one_to_one g → ¬(onto (g ∘ f)) := by
+    assume h1; assume h2
+    by_contra h3; contradict h1; clear h1
+    define at h2
+    define at h3
+    define; fix b
+    have h4 := by apply h3 (g b)
+    obtain a ha from h4; clear h4
+    apply h2 at ha
+    exists a
+    done
 
 -- 5.
 theorem Exercise_5_2_12 {A B : Type} (f : A → B) (g : B → Set A)
     (h : ∀ (b : B), g b = {a : A | f a = b}) :
-    onto f → one_to_one g := sorry
+    onto f → one_to_one g := by
+    assume h1; define at h1
+    define; fix b1; fix b2; assume h2
+    obtain a1 h3 from h1 b1
+    obtain a2 h4 from h1 b2
+    have hb1 := by apply h b1
+    have hb2 := by apply h b2
+    rw [hb1, hb2, Set.ext_iff] at h2
+    have ha1 : a1 ∈ {a: A | f a = b1} := by
+        define; apply h3
+    have h5 := by apply h2 a1
+    rw[h5] at ha1; define at ha1
+    rw [h3] at ha1
+    apply ha1
+    done
 
 -- 6.
 theorem Exercise_5_2_16 {A B C : Type}
     (R : Set (A × B)) (S : Set (B × C)) (f : A → C) (g : B → C)
     (h1 : graph f = comp S R) (h2 : graph g = S) (h3 : one_to_one g) :
-    is_func_graph R := sorry
+    is_func_graph R := by
+    rw [comp, graph, Set.ext_iff] at h1
+    define at h3
+    define; fix a
+    exists_unique
+    · --exist
+        have h := by apply h1 (a, f a)
+        have h4 : (a, f a) ∈ {(a, b) : A × C | f a = b} := by
+            define; rfl
+        rw [h] at h4; define at h4
+        obtain b hb from h4; clear h4
+        exists b; apply hb.left
+    · --unique
+        fix b1; fix b2; assume hb1; assume hb2
+        rw[graph] at h2
+        rw[Set.ext_iff] at h2
+        have hb1' := by apply h2 (b1, g b1)
+        have hb1l : (b1, g b1) ∈ {(a, b) : B × C | g a = b} := by
+            define; rfl
+        rw [hb1'] at hb1l; clear hb1'
+        have hb2' := by apply h2 (b2, g b2)
+        have hb2l : (b2, g b2) ∈ {(a, b) : B × C | g a = b} := by
+            define; rfl
+        rw [hb2'] at hb2l; clear hb2'
+        have h4 : (a, g b1) ∈ {(a, c) : A × C | ∃ (x : B), (a, x) ∈ R ∧ (x, c) ∈ S} := by
+            define; exists b1
+        have h5 : (a, g b2) ∈ {(a, c) : A × C | ∃ (x : B), (a, x) ∈ R ∧ (x, c) ∈ S} := by
+            define; exists b2
+        rw [← h1] at h4; define at h4
+        rw [← h1] at h5; define at h5
+        apply h3; rw[← h4, ← h5]
+    done
 
 -- 7.
 theorem Exercise_5_2_17a
     {A B : Type} (f : A → B) (R : BinRel A) (S : BinRel B)
     (h1 : ∀ (x y : B), S x y ↔ ∃ (u v : A), f u = x ∧ f v = y ∧ R u v)
-    (h2 : onto f) : reflexive R → reflexive S := sorry
+    (h2 : onto f) : reflexive R → reflexive S := by
+    assume h; define at h
+    define at h2
+    define; fix b
+    obtain a h3 from h2 b; clear h2
+    rw [h1]; exists a; exists a
+    apply And.intro h3
+    apply And.intro h3 (h a)
+    done
 
 -- 8.
 theorem Exercise_5_2_17b
     {A B : Type} (f : A → B) (R : BinRel A) (S : BinRel B)
     (h1 : ∀ (x y : B), S x y ↔ ∃ (u v : A), f u = x ∧ f v = y ∧ R u v)
-    (h2 : one_to_one f) : transitive R → transitive S := sorry
+    (h2 : one_to_one f) : transitive R → transitive S := by
+    assume h3
+    define; fix x; fix y; fix z; assume hxy; assume hyz
+    rw[h1] at hxy; rw[h1] at hyz; rw[h1]
+    obtain a temp from hxy; clear hxy
+    obtain b hab from temp; clear temp
+    obtain c temp from hyz; clear hyz
+    obtain d hcd from temp; clear temp
+    define at h2
+    have ebc: b = c := by
+        have hb := hab.right.left
+        have hc := hcd.left
+        rw [← hb] at hc
+        apply h2 at hc
+        rw[hc]
+        done
+    exists a; exists d
+    apply And.intro hab.left
+    apply And.intro hcd.right.left
+    define at h3
+    have hac : R a c := by
+        rw[← ebc]; apply hab.right.right
+    apply h3 a c d hac hcd.right.right
+    done
 
 -- 9.
 theorem Exercise_5_2_21a {A B C : Type} (f : B → C) (g h : A → B)
-    (h1 : one_to_one f) (h2 : f ∘ g = f ∘ h) : g = h := sorry
+    (h1 : one_to_one f) (h2 : f ∘ g = f ∘ h) : g = h := by
+    define at h1
+    rw [funext_iff] at h2
+    apply funext; fix x
+    have h3 := by apply h2 x
+    apply h1 at h3
+    apply h3
+    done
 
 -- 10.
 theorem Exercise_5_2_21b {A B C : Type} (f : B → C) (a : A)
     (h1 : ∀ (g h : A → B), f ∘ g = f ∘ h → g = h) :
-    one_to_one f := sorry
+    one_to_one f := by
+    define; fix b1; fix b2; assume heqb
+    set f1 : A → B := fun (x: A) => b1
+    set f2 : A → B := fun (x: A) => b2
+    have h2: f1 = f2 := by
+        apply h1 f1 f2
+        apply funext
+        fix x; rw[comp_def, comp_def]
+        have hb1 : f1 x = b1 := by rfl
+        have hb2 : f2 x = b2 := by rfl
+        rw [hb1, hb2]
+        apply heqb
+        done
+    rw [funext_iff] at h2
+    have ha := by apply h2 a
+    have hf1 : f1 a = b1 := by rfl
+    have hf2 : f2 a = b2 := by rfl
+    rw[hf1, hf2] at ha; apply ha
+    done
 
 /- Section 5.3 -/
 -- 1.
