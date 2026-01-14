@@ -44,7 +44,17 @@ theorem graph_def {A B : Type} (f : A → B) (a : A) (b : B) :
     (a, b) ∈ graph f ↔ f a = b := by rfl
 
 theorem func_from_graph_ltr {A B : Type} (F : Set (A × B)) :
-    (∃ (f : A → B), graph f = F) → is_func_graph F := sorry
+    (∃ (f : A → B), graph f = F) → is_func_graph F := by
+    assume h; obtain f hf from h; clear h
+    define; fix x
+    rw [graph] at hf
+    exists_unique
+    ·   exists (f x); rw [←hf]; define; rfl
+    ·   fix y1; fix y2; assume h1; assume h2
+        rw[← hf] at h1; define at h1
+        rw[← hf] at h2; define at h2
+        rw[←h1, ←h2]
+    done
 
 --This proof is explained in Section 8.2
 theorem func_from_graph_rtl {A B : Type} (F : Set (A × B)) :

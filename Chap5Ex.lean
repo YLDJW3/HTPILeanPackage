@@ -4,48 +4,116 @@ namespace HTPI.Exercises
 /- Section 5.1 -/
 -- 1.
 theorem func_from_graph_ltr {A B : Type} (F : Set (A × B)) :
-    (∃ (f : A → B), graph f = F) → is_func_graph F := sorry
+    (∃ (f : A → B), graph f = F) → is_func_graph F := by
+    assume h; obtain f hf from h; clear h
+    define; fix x; exists_unique
+    · -- existence
+        exists (f x); rw[← hf]; define; rfl
+    · -- uniqueness
+        fix y1; fix y2; assume h1; assume h2
+        rw[← hf] at h1; rw[← hf] at h2
+        define at h1; define at h2
+        rw[← h1, ← h2]
+    done
 
 -- 2.
 theorem Exercise_5_1_13a
     {A B C : Type} (R : Set (A × B)) (S : Set (B × C)) (f : A → C)
     (h1 : ∀ (b : B), b ∈ Ran R ∧ b ∈ Dom S) (h2 : graph f = comp S R) :
-    is_func_graph S := sorry
+    is_func_graph S := by
+    define; fix b
+    have hb := by apply h1 b
+    clear h1
+    have hl := hb.left; have hr := hb.right; clear hb
+    define at hl; obtain a ha from hl; clear hl
+    define at hr; obtain c hc from hr; clear hr
+    exists_unique
+    ·   --existence
+        exists c
+    ·   --uniqueness
+        fix c1; fix c2; assume hc1; assume hc2
+        rw[comp] at h2
+        have h: (a, c1) ∈ graph f := by
+            rw[h2]; define
+            exists b
+            done
+        have h': (a, c2) ∈ graph f := by
+            rw[h2]; define
+            exists b
+            done
+        define at h; define at h'
+        rw[← h, ← h']
+    done
 
 -- 3.
 theorem Exercise_5_1_14a
     {A B : Type} (f : A → B) (R : BinRel A) (S : BinRel B)
     (h : ∀ (x y : A), R x y ↔ S (f x) (f y)) :
-    reflexive S → reflexive R := sorry
+    reflexive S → reflexive R := by
+    assume hs; define at hs
+    define; fix a; rw[h]
+    apply hs
+    done
 
 -- 4.
 --You might not be able to complete this proof
 theorem Exercise_5_1_15a
     {A B : Type} (f : A → B) (R : BinRel A) (S : BinRel B)
     (h : ∀ (x y : B), S x y ↔ ∃ (u v : A), f u = x ∧ f v = y ∧ R u v) :
-    reflexive R → reflexive S := sorry
+    reflexive R → reflexive S := by
+    assume hr; define at hr
+    define; fix b; rw[h]
+    sorry
+    -- can't guarantee ∀ b ∈ S, ∃ a ∈ R, f a = b
 
 -- 5.
 --You might not be able to complete this proof
 theorem Exercise_5_1_15c
     {A B : Type} (f : A → B) (R : BinRel A) (S : BinRel B)
     (h : ∀ (x y : B), S x y ↔ ∃ (u v : A), f u = x ∧ f v = y ∧ R u v) :
-    transitive R → transitive S := sorry
+    transitive R → transitive S := by
+    assume hr; define at hr
+    define; fix x; fix y; fix z
+    assume hxy; rw [h] at hxy
+    obtain a hxy' from hxy; clear hxy
+    obtain b hxy from hxy'; clear hxy'
+    assume hyz; rw[h] at hyz
+    obtain c hyz' from hyz; clear hyz
+    obtain d hyz from hyz'; clear hyz'
+    rw[h]; exists a; exists d
+    apply And.intro hxy.left
+    apply And.intro hyz.right.left
+    sorry
+    -- can't prove b = c by givens
 
 -- 6.
 theorem Exercise_5_1_16b
     {A B : Type} (R : BinRel B) (S : BinRel (A → B))
     (h : ∀ (f g : A → B), S f g ↔ ∀ (x : A), R (f x) (g x)) :
-    symmetric R → symmetric S := sorry
+    symmetric R → symmetric S := by
+    assume hr; define at hr
+    define; fix f; fix g; assume hfg; rw[h] at hfg
+    rw[h]; fix x
+    apply hr; apply hfg
+    done
 
 -- 7.
 theorem Exercise_5_1_17a {A : Type} (f : A → A) (a : A)
-    (h : ∀ (x : A), f x = a) : ∀ (g : A → A), f ∘ g = f := sorry
+    (h : ∀ (x : A), f x = a) : ∀ (g : A → A), f ∘ g = f := by
+    fix g; apply funext; fix x
+    rw[h]
+    apply h
+    done
 
 -- 8.
 theorem Exercise_5_1_17b {A : Type} (f : A → A) (a : A)
     (h : ∀ (g : A → A), f ∘ g = f) :
-    ∃ (y : A), ∀ (x : A), f x = y := sorry
+    ∃ (y : A), ∀ (x : A), f x = y := by
+    exists f a; fix x
+    set g : A → A := fun (x: A) => a
+    have h1 := by apply h g
+    nth_rewrite 1 [← h1]
+    rfl
 
 /- Section 5.2 -/
 -- 1.
