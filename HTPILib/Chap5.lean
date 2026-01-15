@@ -237,7 +237,16 @@ theorem Theorem_5_3_2_1 {A B : Type} (f : A → B) (g : B → A)
   done
 
 theorem Theorem_5_3_2_2 {A B : Type} (f : A → B) (g : B → A)
-    (h1 : graph g = inv (graph f)) : f ∘ g = id := sorry
+    (h1 : graph g = inv (graph f)) : f ∘ g = id := by
+    apply funext; fix b : B
+    have h2 : (b, g b) ∈  inv (graph f) := by
+      rw [← h1]
+      define
+      rfl
+    define at h2
+    rw[comp_def, h2]; rfl
+    done
+
 
 theorem Theorem_5_3_3_1 {A B : Type} (f : A → B) (g : B → A)
     (h1 : g ∘ f = id) : one_to_one f := by
@@ -256,7 +265,11 @@ theorem Theorem_5_3_3_1 {A B : Type} (f : A → B) (g : B → A)
   done
 
 theorem Theorem_5_3_3_2 {A B : Type} (f : A → B) (g : B → A)
-    (h1 : f ∘ g = id) : onto f := sorry
+    (h1 : f ∘ g = id) : onto f := by
+    define; fix b
+    rw [funext_iff] at h1
+    have hb := by apply h1 b
+    exists (g b)
 
 theorem Theorem_5_3_5 {A B : Type} (f : A → B) (g : B → A)
     (h1 : g ∘ f = id) (h2 : f ∘ g = id) : graph g = inv (graph f) := by

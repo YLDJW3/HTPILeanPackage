@@ -303,40 +303,119 @@ theorem Exercise_5_2_21b {A B C : Type} (f : B → C) (a : A)
 /- Section 5.3 -/
 -- 1.
 theorem Theorem_5_3_2_2 {A B : Type} (f : A → B) (g : B → A)
-    (h1 : graph g = inv (graph f)) : f ∘ g = id := sorry
+    (h1 : graph g = inv (graph f)) : f ∘ g = id := by
+    apply funext; fix b
+    have h : (b, g b) ∈ inv (graph f) := by
+        rw [← h1]; define; rfl
+    define at h
+    rw [comp_def, h]
+    rfl
 
 -- 2.
 theorem Theorem_5_3_3_2 {A B : Type} (f : A → B) (g : B → A)
-    (h1 : f ∘ g = id) : onto f := sorry
+    (h1 : f ∘ g = id) : onto f := by
+    define; fix b
+    exists (g b)
+    rw [funext_iff] at h1
+    apply h1
 
 -- 3.
 theorem Exercise_5_3_11a {A B : Type} (f : A → B) (g : B → A) :
-    one_to_one f → f ∘ g = id → graph g = inv (graph f) := sorry
+    one_to_one f → f ∘ g = id → graph g = inv (graph f) := by
+    assume h1; assume h2
+    define at h1
+    rw[funext_iff] at h2
+    apply Set.ext; fix (b, a); apply Iff.intro
+    · -- ->
+        assume h; define at h; define
+        have h3 := by apply h2 b
+        rw [← h]; apply h3
+    · -- <-
+        assume h; define at h; define
+        have h3 := by apply h2 (b)
+        rw [comp_def] at h3
+        have heq : f a = f (g b) := by
+            rw [h, h3]; rfl
+        apply h1 at heq
+        rw [heq]
+    done
 
 -- 4.
 theorem Exercise_5_3_11b {A B : Type} (f : A → B) (g : B → A) :
-    onto f → g ∘ f = id → graph g = inv (graph f) := sorry
+    onto f → g ∘ f = id → graph g = inv (graph f) := by
+    assume h1; assume h2
+    define at h1
+    rw [funext_iff] at h2
+    apply Set.ext; fix (b, a); apply Iff.intro
+    ·   assume h; define at h; define
+        obtain a' ha' from h1 b
+        rw [← ha'] at h
+        have h3 := by apply h2 a'
+        rw [comp_def, h] at h3
+        rw [← ha', h3]; rfl
+    ·   assume h; define at h; define
+        rw [← h]; apply h2
+    done
 
 -- 5.
 theorem Exercise_5_3_14a {A B : Type} (f : A → B) (g : B → A)
-    (h : f ∘ g = id) : ∀ x ∈ Ran (graph g), g (f x) = x := sorry
+    (h : f ∘ g = id) : ∀ x ∈ Ran (graph g), g (f x) = x := by
+    fix a; assume h1; define at h1
+    obtain b h2 from h1; clear h1; define at h2
+    rw [funext_iff] at h
+    have hb := by apply h b
+    rw [comp_def, id, h2] at hb
+    rw [hb]
+    apply h2
+    done
 
 -- 6.
 theorem Exercise_5_3_18 {A B C : Type} (f : A → C) (g : B → C)
     (h1 : one_to_one g) (h2 : onto g) :
-    ∃ (h : A → B), g ∘ h = f := sorry
+    ∃ (h : A → B), g ∘ h = f := by
+    have h := by apply Theorem_5_3_1 g h1 h2
+    obtain g' h3 from h; clear h
+    exists g' ∘ f
+    apply funext; fix a
+    rw[comp_def, comp_def]
+    rw[Set.ext_iff] at h3
+    have h4 := by apply h3 (f a, g' (f a))
+    have h5 : (f a, g' (f a)) ∈ graph g' := by
+        define; rfl
+    rw [h4] at h5; define at h5
+    apply h5
+    done
 
 -- Definition for next two exercises:
 def conjugate (A : Type) (f1 f2 : A → A) : Prop :=
     ∃ (g g' : A → A), (f1 = g' ∘ f2 ∘ g) ∧ (g ∘ g' = id) ∧ (g' ∘ g = id)
 
 -- 7.
-theorem Exercise_5_3_17a {A : Type} : symmetric (conjugate A) := sorry
+theorem Exercise_5_3_17a {A : Type} : symmetric (conjugate A) := by
+    define; fix f1; fix f2
+    assume h1; define at h1
+    obtain g1 tmp from h1; clear h1
+    obtain g2 h2 from tmp; clear tmp
+
+    define; exists g2; exists g1
+    apply And.intro
+    ·   apply funext; fix x
+        rw [h2.left, comp_def, comp_def, comp_def, comp_def]
+        have h3 := h2.right.left; rw [funext_iff] at h3
+        have h4 := by apply h3 x
+        rw [comp_def] at h4
+        rw [h4, id]
+        have h5 := by apply h3 (f2 x)
+        rw [comp_def] at h5
+        rw [h5, id]
+    ·   apply And.intro h2.right.right h2.right.left
+    done
 
 -- 8.
 theorem Exercise_5_3_17b {A : Type} (f1 f2 : A → A)
     (h1 : conjugate A f1 f2) (h2 : ∃ (a : A), f1 a = a) :
-    ∃ (a : A), f2 a = a := sorry
+    ∃ (a : A), f2 a = a := by
+
 
 /- Section 5.4 -/
 -- 1.
