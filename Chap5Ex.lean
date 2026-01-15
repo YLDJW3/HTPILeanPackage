@@ -591,44 +591,219 @@ theorem Exercise_5_4_13a {A : Type} (F : Set (A → A)) (B : Set A) :
 
 --Warning!  Not all of these examples are correct!
 example {A B : Type} (f : A → B) (W X : Set A) :
-    image f (W ∪ X) = image f W ∪ image f X := sorry
+    image f (W ∪ X) = image f W ∪ image f X := by
+    apply Set.ext; fix b; apply Iff.intro
+    ·   assume h; define at h; obtain a ha from h; clear h
+        have h1 := ha.left; define at h1; define
+        by_cases on h1
+        ·   apply Or.inl; define; exists a
+            apply And.intro h1 ha.right
+        ·   apply Or.inr; define; exists a
+            apply And.intro h1 ha.right
+    ·   assume h; define at h; define
+        by_cases on h
+        ·   define at h; obtain a ha from h
+            exists a; apply And.intro _ ha.right
+            define; apply Or.inl ha.left
+        ·   define at h; obtain a ha from h
+            exists a; apply And.intro _ ha.right
+            define; apply Or.inr ha.left
+    done
 
 example {A B : Type} (f : A → B) (W X : Set A) :
     image f (W \ X) = image f W \ image f X := sorry
+    -- counterexample
+    -- W = {1, 2, 3}
+    -- X = {-1, -2, -3}
+    -- W \ X = {1, 2, 3}
+    -- f x => abs(x)
+    -- image f W = {1, 2, 3}
+    -- image f X = {1, 2, 3}
+    -- image f (W \ X) = {1, 2, 3}
+    -- image f W \ image f X = ∅
+
 
 example {A B : Type} (f : A → B) (W X : Set A) :
-    W ⊆ X ↔ image f W ⊆ image f X := sorry
+    W ⊆ X ↔ image f W ⊆ image f X := by
+    apply Iff.intro
+    ·   assume h; define at h
+        define; fix b
+        assume h1; define at h1; obtain a ha from h1; clear h1
+        define; exists a; apply And.intro _ ha.right
+        apply h; apply ha.left
+    sorry
+    -- <- false
+    -- counterexample
+    -- W {1, 2, 3}
+    -- X {-1,-2,-3}
+    -- f abs
+    -- image f W {1, 2, 3}
+    -- image f X {1, 2, 3}
+    -- image f W ⊆ image f X
+    -- ¬ W ⊆ X
 
 example {A B : Type} (f : A → B) (Y Z : Set B) :
     inverse_image f  (Y ∩ Z) =
-        inverse_image f Y ∩ inverse_image f Z := sorry
+        inverse_image f Y ∩ inverse_image f Z := by
+    apply Set.ext; fix a; apply Iff.intro
+    ·   -- (->)
+        assume h; define at h
+        apply And.intro
+        ·   define; apply h.left
+        ·   define; apply h.right
+    ·   -- (<-)
+        assume h; define at h
+        have h1 := h.left; define at h1
+        have h2 := h.right; define at h2
+        define; apply And.intro h1 h2
+    done
+
 
 example {A B : Type} (f : A → B) (Y Z : Set B) :
     inverse_image f  (Y ∪ Z) =
-        inverse_image f Y ∪ inverse_image f Z := sorry
+        inverse_image f Y ∪ inverse_image f Z := by
+    apply Set.ext; fix a: A; apply Iff.intro
+    ·   -- (->)
+        assume h; define at h
+        by_cases on h
+        ·   apply Or.inl; define; apply h
+        ·   apply Or.inr; define; apply h
+    ·   -- (<-)
+        assume h; define at h
+        by_cases on h
+        ·   define; define at h; apply Or.inl h
+        ·   define; define at h; apply Or.inr h
+    done
 
 example {A B : Type} (f : A → B) (Y Z : Set B) :
     inverse_image f  (Y \ Z) =
-        inverse_image f Y \ inverse_image f Z := sorry
+        inverse_image f Y \ inverse_image f Z := by
+    apply Set.ext; fix a : A; apply Iff.intro
+    ·   -- (->)
+        assume h; define at h
+        define; apply And.intro
+        ·   define; apply h.left
+        ·   define; apply h.right
+    ·   -- (<-)
+        assume h; define at h
+        have h1 := h.left; define at h1
+        have h2 := h.right; define at h2
+        define; apply And.intro h1 h2
+    done
 
-example {A B : Type} (f : A → B) (Y Z : Set B) :
-    Y ⊆ Z ↔ inverse_image f Y ⊆ inverse_image f Z := sorry
+example {A B : Type} (f : A → B) (Y Z : Set B) (hf: onto f):
+    Y ⊆ Z ↔ inverse_image f Y ⊆ inverse_image f Z := by
+    apply Iff.intro
+    ·   -- (->)
+        assume h; define at h
+        define; fix a: A; assume h1
+        define at h1; define
+        apply h; apply h1
+    ·   -- (<-) should add f is onto condition
+        assume h; define at h
+        define; fix b: B
+        assume h1
+        ------------------ using additional given hf -----------------
+        define at hf
+        obtain a h2 from hf b
+        --------------------------------------------------------------
+        have h3 : a ∈ inverse_image f Z := by
+            apply h
+            define; rw [h2]
+            apply h1
+            done
+        define at h3; rw [h2] at h3
+        apply h3
+    done
 
-example {A B : Type} (f : A → B) (X : Set A) :
-    inverse_image f (image f X) = X := sorry
+example {A B : Type} (f : A → B) (X : Set A) (hf: one_to_one f):
+    inverse_image f (image f X) = X := by
+    apply Set.ext; fix a: A; apply Iff.intro
+    ·   -- (->)
+        assume h; define at h
+        obtain b hb from h; clear h
+        ------------------ using additional given hf -----------------
+        define at hf
+        have h := by apply hf b a hb.right
+        rw [← h]
+        apply hb.left
+        --------------------------------------------------------------
+    ·   -- (<-)
+        assume h;
+        define; exists a
+    done
 
-example {A B : Type} (f : A → B) (Y : Set B) :
-    image f (inverse_image f Y) = Y := sorry
+example {A B : Type} (f : A → B) (Y : Set B) (hf: onto f) :
+    image f (inverse_image f Y) = Y := by
+    apply Set.ext; fix b: B; apply Iff.intro
+    ·   -- (->)
+        assume h; define at h
+        obtain a ha from h; clear h
+        have h1 := ha.left; define at h1
+        rw [ha.right] at h1; apply h1
+    ·   -- (<-)
+        assume h; define
+        ------------------ using additional given hf -----------------
+        define at hf
+        obtain a ha from hf b
+        --------------------------------------------------------------
+        exists a; apply And.intro _ ha
+        define; rw [ha]; apply h
+    done
 
 example {A : Type} (f : A → A) (C : Set A) :
-    closed f C → image f C ⊆ C := sorry
+    closed f C → image f C ⊆ C := by
+    assume h; define at h
+    define; fix a : A
+    assume h1; define at h1
+    obtain c hc from h1; clear h1
+    rw[← hc.right]
+    apply h
+    apply hc.left
+    done
+
+example {A : Type} (f : A → A) (C : Set A):
+    image f C ⊆ C → C ⊆ inverse_image f C := by
+    -- unless f is closed on C
+    assume h; define at h
+    define; fix a: A; assume h1
+    define
+    apply h
+    define; exists a
+    done
 
 example {A : Type} (f : A → A) (C : Set A) :
-    image f C ⊆ C → C ⊆ inverse_image f C := sorry
-
-example {A : Type} (f : A → A) (C : Set A) :
-    C ⊆ inverse_image f C → closed f C := sorry
+    C ⊆ inverse_image f C → closed f C := by
+    assume h; define at h
+    define; fix a: A; assume h1
+    apply h at h1; define at h1
+    apply h1
+    done
 
 example {A B : Type} (f : A → B) (g : B → A) (Y : Set B)
     (h1 : f ∘ g = id) (h2 : g ∘ f = id) :
-    inverse_image f Y = image g Y := sorry
+    inverse_image f Y = image g Y := by
+    apply Set.ext
+    fix a : A
+    apply Iff.intro
+    ·   -- (->)
+        assume h; define at h; define
+        exists (f a)
+        apply And.intro h
+        rw [funext_iff] at h2
+        have ha := by apply h2 a
+        rw [comp_def] at ha
+        rw [ha, id]
+    ·   -- (<-)
+        assume h; define at h
+        obtain b hb from h; clear h
+        define
+        rw [← hb.right]
+        have h : f (g b) = b := by
+            rw [funext_iff] at h1
+            have hb := by apply h1 b
+            rw [comp_def] at hb
+            rw [hb, id]
+        rw [h]
+        apply hb.left
+    done
