@@ -415,40 +415,177 @@ theorem Exercise_5_3_17a {A : Type} : symmetric (conjugate A) := by
 theorem Exercise_5_3_17b {A : Type} (f1 f2 : A → A)
     (h1 : conjugate A f1 f2) (h2 : ∃ (a : A), f1 a = a) :
     ∃ (a : A), f2 a = a := by
+    define at h1
+    obtain g1 tmp from h1; clear h1
+    obtain g2 h1 from tmp; clear tmp
 
+    obtain a ha from h2; clear h2
+    have h2: ((g1 ∘ (g2 ∘ f2 ∘ g1)) a = g1 a) := by
+        rw [← h1.left, comp_def, ha]
+    exists (g1 a)
+    have h3 := h1.right.left
+    rw [funext_iff] at h3
+    have h4 := by apply h3 (f2 (g1 a))
+    rw[id] at h4
+    rw [← h4]
+    nth_rewrite 2 [← h2]
+    rfl
 
 /- Section 5.4 -/
 -- 1.
 example {A : Type} (F : Set (Set A)) (B : Set A) :
-    smallestElt (sub A) B F → B = ⋂₀ F := sorry
+    smallestElt (sub A) B F → B = ⋂₀ F := by
+    assume h; define at h
+    apply Set.ext; fix x; apply Iff.intro
+    ·   assume h2; define; fix X; assume hX
+        have h1 := h.right
+        apply h1 at hX; define at hX
+        apply hX; apply h2
+    ·   assume h2; define at h2
+        have h3 := h.left
+        apply h2 at h3; apply h3
+    done
 
 -- 2.
 def complement {A : Type} (B : Set A) : Set A := {a : A | a ∉ B}
 
 theorem Exercise_5_4_7 {A : Type} (f g : A → A) (C : Set A)
-    (h1 : f ∘ g = id) (h2 : closed f C) : closed g (complement C) := sorry
+    (h1 : f ∘ g = id) (h2 : closed f C) : closed g (complement C) := by
+    define at h2
+    define; fix x; assume hx; define at hx; define
+    by_contra h; contradict hx; clear hx
+    apply h2 at h
+    rw[funext_iff] at h1
+    have hx := by apply h1 x
+    rw [comp_def, id] at hx
+    rw [hx] at h
+    apply h
+    done
 
 -- 3.
 theorem Exercise_5_4_9a {A : Type} (f : A → A) (C1 C2 : Set A)
-    (h1 : closed f C1) (h2 : closed f C2) : closed f (C1 ∪ C2) := sorry
+    (h1 : closed f C1) (h2 : closed f C2) : closed f (C1 ∪ C2) := by
+    define at h1; define at h2; define
+    fix x; assume hx; define at hx
+    define
+    by_cases on hx
+    ·   apply h1 at hx
+        apply Or.inl hx
+    ·   apply h2 at hx
+        apply Or.inr hx
+    done
 
 -- 4.
 theorem Exercise_5_4_10a {A : Type} (f : A → A) (B1 B2 C1 C2 : Set A)
     (h1 : closure f B1 C1) (h2 : closure f B2 C2) :
-    B1 ⊆ B2 → C1 ⊆ C2 := sorry
+    B1 ⊆ B2 → C1 ⊆ C2 := by
+    define at h1
+    define at h2
+    have h1l := h1.left; define at h1l
+    have h2l := h2.left; define at h2l
+    have h1r := h1.right; clear h1
+    have h2r := h2.right; clear h2
+    assume h
+    have h3 : B1 ⊆ C2 := by
+        define; fix a; assume hb1
+        define at h; apply h at hb1
+        have h2 := h2l.left; define at h2
+        apply h2; apply hb1
+        done
+    have h4 : C2 ∈ {D: Set A | B1 ⊆ D ∧ closed f D} := by
+        define
+        apply And.intro h3 h2l.right
+        done
+    apply h1r at h4; define at h4
+    define; apply h4
+    done
 
 -- 5.
 theorem Exercise_5_4_10b {A : Type} (f : A → A) (B1 B2 C1 C2 : Set A)
     (h1 : closure f B1 C1) (h2 : closure f B2 C2) :
-    closure f (B1 ∪ B2) (C1 ∪ C2) := sorry
+    closure f (B1 ∪ B2) (C1 ∪ C2) := by
+    define at h1; have h11 := h1.left; have h12 := h1.right; clear h1
+    define at h2; have h21 := h2.left; have h22 := h2.right; clear h2
+    define at h11; define at h21
+    define; apply And.intro
+    ·   define
+        apply And.intro
+        ·   define; fix a; assume h; define at h; define
+            by_cases on h
+            ·   apply Or.inl; have h1 := h11.left; define at h1; apply h1; apply h
+            ·   apply Or.inr; have h1 := h21.left; define at h1; apply h1; apply h
+        ·   define; fix x; assume h; define at h; define
+            by_cases on h
+            ·   apply Or.inl; have h1 := h11.right; define at h1; apply h1; apply h
+            ·   apply Or.inr; have h1 := h21.right; define at h1; apply h1; apply h
+    ·   fix X; assume h; define at h; define; fix x
+        assume h1; define at h1
+        have h2 := h.left; have h3 := h.right; clear h
+        define at h2
+        by_cases on h1
+        ·   have h : X ∈ {D : Set A | B1 ⊆ D ∧ closed f D} := by
+                define; apply And.intro _ h3
+                define; fix a; assume h; apply h2; define; apply Or.inl h
+                done
+            apply h12 at h; define at h
+            apply h; apply h1
+        ·   have h : X ∈ {D : Set A | B2 ⊆ D ∧ closed f D} := by
+                define; apply And.intro _ h3
+                define; fix a; assume h; apply h2; define; apply Or.inr h
+                done
+            apply h22 at h; define at h
+            apply h; apply h1
+    done
 
 -- 6.
 theorem Theorem_5_4_9 {A : Type} (f : A → A → A) (B : Set A) :
-    ∃ (C : Set A), closure2 f B C := sorry
+    ∃ (C : Set A), closure2 f B C := by
+    set F : Set (Set A) := {D : Set A | B ⊆ D ∧ closed2 f D}
+    exists ⋂₀ F; define
+    apply And.intro
+    ·   define; apply And.intro
+        ·   define; fix a; assume h1
+            define; fix X; assume h2
+            define at h2; have h3 := h2.left
+            define at h3; apply h3; apply h1
+        ·   define; fix X; assume h1; define at h1
+            fix Y; assume h2; define at h2
+            define; fix Z; assume h3
+            have h4 := by apply h1 Z h3
+            have h5 := by apply h2 Z h3
+            define at h3; have h6 := h3.right
+            define at h6; apply h6
+            apply h4; apply h5
+    ·   fix X; assume h; define at h
+        have h1 := h.left; have h2 := h.right; clear h
+        fix a; assume ha; define at ha
+        apply ha; define
+        apply And.intro h1 h2
+    done
 
 -- 7.
 theorem Exercise_5_4_13a {A : Type} (F : Set (A → A)) (B : Set A) :
-    ∃ (C : Set A), closure_family F B C := sorry
+    ∃ (C : Set A), closure_family F B C := by
+    set G : Set (Set A) := {D : Set A | B ⊆ D ∧ closed_family F D}
+    exists ⋂₀ G; define; apply And.intro
+    ·   define; apply And.intro
+        ·   define; fix a; assume h
+            define; fix X; assume h1; define at h1
+            have h2 := h1.left; define at h2
+            apply h2; apply h
+        ·   define; fix f; assume hf
+            define; fix a; assume hX; define at hX
+            define; fix X; assume h1; have h3 := h1
+            define at h1
+            apply hX at h3
+            have h2 := h1.right; define at h2
+            apply h2 at hf; define at hf; clear h2
+            apply hf; apply h3
+    ·   fix X; assume h
+        define; fix a; assume h1; define at h1
+        have h2 := by apply h1 X h
+        apply h2
+    done
 
 /- Section 5.5 -/
 
