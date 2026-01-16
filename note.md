@@ -104,5 +104,31 @@
     `rfl` tactic
 4. `ring` tactic
     `ring` can combine algebraic laws involving addition, subtraction, multiplication, and exponentiation with natural number exponents to prove many equations in one step
-
+# Ch6 Mathematcial Induction
+1. `by_induc`
+2. `Sum`
+    1. `sum_base`
+    ```lean
+    ∀ {A : Type} [inst : AddZeroClass A] {k : ℕ} {f : ℕ → A}, 
+        Sum i from k to k, f i = f k
+    ```
+    2. `sum_step`
+    ```lean
+    ∀ {A : Type} [inst : AddZeroClass A] {k n : ℕ} {f : ℕ → A}, 
+        k ≤ n → 
+        Sum i from k to n + 1, f i = (Sum i from k to n, f i) + f (n + 1)
+    ```
+    3. `sum_from_zero_step`
+    ```lean
+    ∀ {A : Type} [inst : AddZeroClass A] {n : ℕ} {f : ℕ → A}, 
+        Sum i from 0 to n + 1, f i = (Sum i from 0 to n, f i) + f (n + 1)
+    ```
+3. `Nat.mul_le_mul_right`
+    ```lean
+    ∀ {n m : ℕ} (k : ℕ), n ≤ m → n * k ≤ m * k
+    ```
+4. `decide`
+    The truth or falsity of the inequality in the base case can be decided by simply doing the necessary arithmetic
+5. `linarith`
+    The tactic `linarith` makes inferences that involve combining **linear equations and inequalities**
 

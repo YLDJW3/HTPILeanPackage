@@ -4,35 +4,176 @@ namespace HTPI.Exercises
 /- Section 6.1 -/
 -- 1.
 theorem Like_Exercise_6_1_1 :
-    ∀ (n : Nat), 2 * Sum i from 0 to n, i = n * (n + 1) := sorry
+    ∀ (n : Nat), 2 * Sum i from 0 to n, i = n * (n + 1) := by
+    by_induc
+    · --Base case
+      decide
+      done
+    · --Induction case
+      fix n: Nat
+      assume ih: 2 * Sum i from 0 to n, i = n * (n + 1)
+      show 2 * Sum i from 0 to n + 1, i = (n + 1) * (n + 1 + 1) from
+        calc (2 * Sum i from 0 to n + 1, i)
+          _ = 2 * ((Sum i from 0 to n, i) + (n + 1)) := by
+            rw[sum_from_zero_step]
+          _ = 2 * (Sum i from 0 to n, i) + 2 * (n + 1) := by ring
+          _ = n * (n + 1) + 2 * (n + 1) := by
+            rw [ih]
+          _ = (n + 1) * (n + 1 + 1) := by ring
+      done
 
 -- 2.
 theorem Like_Exercise_6_1_4 :
-    ∀ (n : Nat), Sum i from 0 to n, 2 * i + 1 = (n + 1) ^ 2 := sorry
+    ∀ (n : Nat), Sum i from 0 to n, 2 * i + 1 = (n + 1) ^ 2 := by
+    by_induc
+    · --Base case
+      decide
+    · --Induction case
+      fix n: Nat
+      assume ih: Sum i from 0 to n, 2 * i + 1 = (n + 1) ^ 2
+      show Sum i from 0 to n + 1, 2 * i + 1 = (n + 1 + 1) ^ 2 from
+        calc (Sum i from 0 to n + 1, 2 * i + 1)
+          _ = (Sum i from 0 to n, 2 * i + 1) + (2 * (n + 1) + 1) := by
+            rw [sum_from_zero_step]
+          _ = (n + 1) ^ 2 + (2 * (n + 1) + 1) := by
+            rw [ih]
+          _ = (n + 1 + 1) ^ 2 := by ring
+      done
 
 -- 3.
-theorem Exercise_6_1_9a : ∀ (n : Nat), 2 ∣ n ^ 2 + n := sorry
+theorem Exercise_6_1_9a : ∀ (n : Nat), 2 ∣ n ^ 2 + n := by
+  by_induc
+  · --Base case
+    decide
+  · --Induction case
+    fix n: Nat
+    assume ih : 2 ∣ n ^ 2 + n
+    define at ih; obtain k ihk from ih; clear ih
+    define; exists k + n + 1; ring
+    show 2 + n * 3 + n ^ 2 = 2 + n * 2 + k * 2 from
+      calc (2 + n * 3 + n ^ 2)
+        _ = (2 + n * 2 + (n ^ 2 + n)) := by ring
+        _ = (2 + n * 2 + 2 * k) := by rw [ihk]
+        _ = (2 + n * 2 + k * 2) := by ring
+    done
 
 -- 4.
 theorem Exercise_6_1_13 :
-    ∀ (a b : Int) (n : Nat), (a - b) ∣ (a ^ n - b ^ n) := sorry
+    ∀ (a b : Int) (n : Nat), (a - b) ∣ (a ^ n - b ^ n) := by
+    fix a; fix b
+    by_induc
+    · --Base case
+      define; exists 0; ring
+    · --Induction case
+      fix n: Nat
+      assume ih; define at ih
+      obtain k ihk from ih; clear ih
+      define;
+      -- a^(n+1) - b^(n+1) = a*(a^n - b^n) + b^n(a - b)
+      exists a * k + b ^ n
+      show a ^ (n + 1) - b ^ (n + 1) = (a - b) * (a * k + b ^ n) from
+        calc (a ^ (n + 1) - b ^ (n + 1))
+          _ = a * (a ^ n - b ^ n) + b ^ n * (a - b) := by ring
+          _ = a * ((a - b) * k) + b ^ n * (a - b) := by rw [ihk]
+          _ = (a - b) * (a * k + b ^ n) := by ring
+      done
 
 -- 5.
-theorem Exercise_6_1_15 : ∀ n ≥ 10, 2 ^ n > n ^ 3 := sorry
+theorem Exercise_6_1_15 : ∀ n ≥ 10, 2 ^ n > n ^ 3 := by
+  by_induc
+  · --Base case
+    decide
+  · --Induction case
+    fix n: Nat
+    assume ih1 : n ≥ 10
+    assume ih2 : 2 ^ n > n ^ 3
+    have h1 : n * n ^ 2 >= 10 * n ^ 2 := Nat.mul_le_mul_right (n ^ 2) ih1
+    have h2 : n * n >=  10 * n := Nat.mul_le_mul_right n ih1
+    show 2 ^ (n + 1) > (n + 1) ^ 3 from
+      calc 2 ^ (n + 1)
+      _ = 2 * 2 ^ n := by ring
+      _ > 2 * n ^ 3 := by linarith
+      _ >= n ^ 3 + 10 * n ^ 2 := by linarith
+      _ >= n ^ 3 + 3 * n ^ 2 + 70 * n := by linarith
+      _ >= n ^ 3 + 3 * n ^ 2 + 3 * n + 1 := by linarith
+      _ = (n + 1) ^ 3 := by ring
+    done
 
 -- 6.
 lemma nonzero_is_successor :
-    ∀ (n : Nat), n ≠ 0 → ∃ (m : Nat), n = m + 1 := sorry
+    ∀ (n : Nat), n ≠ 0 → ∃ (m : Nat), n = m + 1 := by
+    by_induc
+    · -- base case
+      assume h; contradict h; rfl
+    · -- induction case
+      fix n: Nat
+      assume ih1; assume ih2
+      exists n
+      done
 
 -- 7.
 theorem Exercise_6_1_16a1 :
-    ∀ (n : Nat), nat_even n ∨ nat_odd n := sorry
+    ∀ (n : Nat), nat_even n ∨ nat_odd n := by
+    by_induc
+    · -- base case
+      apply Or.inl
+      define; exists 0
+    · -- induction case
+      fix n: Nat
+      assume h; by_cases on h
+      · -- nat_odd n
+        define at h; obtain k hk from h; clear h
+        apply Or.inr; define
+        exists k; rw [hk]
+      · -- nat_even n
+        define at h; obtain k hk from h; clear h
+        apply Or.inl; define
+        exists k + 1; rw [hk]
+        ring
+      done
 
 -- 8.
 --Hint:  You may find the lemma nonzero_is_successor
 --from a previous exercise useful, as well as Nat.add_right_cancel.
 theorem Exercise_6_1_16a2 :
-    ∀ (n : Nat), ¬(nat_even n ∧ nat_odd n) := sorry
+    ∀ (n : Nat), ¬(nat_even n ∧ nat_odd n) := by
+    by_induc
+    · --base case
+      demorgan
+      apply Or.inr
+      by_contra h; define at h
+      obtain k hk from h; clear h
+      simp at hk
+    · --induction case
+      fix n: Nat
+      assume h; demorgan at h
+      demorgan
+      by_cases on h
+      · -- not even n
+        apply Or.inr
+        by_contra h1; define at h1
+        obtain k hk from h1; clear h1
+        contradict h; clear h
+        define; exists k
+        apply Nat.add_right_cancel at hk
+        apply hk
+      · -- not odd n
+        apply Or.inl
+        by_contra h1; define at h1
+        obtain k hk from h1; clear h1
+        contradict h; clear h
+        have h : ∃ (m : Nat), k = m + 1 := by
+          apply nonzero_is_successor
+          intro h
+          rw [h] at hk
+          simp at hk
+          done
+        obtain m hm from h; clear h
+        define; exists m
+        rw [hm] at hk
+        apply add_right_cancel at hk
+        apply hk
+      done
 
 /- Section 6.2 -/
 -- 1.
