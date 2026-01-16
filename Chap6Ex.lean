@@ -460,26 +460,109 @@ theorem Example_6_2_2 {A : Type} (R : BinRel A)
 -- 1.
 theorem Exercise_6_3_4 : ∀ (n : Nat),
     3 * (Sum i from 0 to n, (2 * i + 1) ^ 2) =
-    (n + 1) * (2 * n + 1) * (2 * n + 3) := sorry
+    (n + 1) * (2 * n + 1) * (2 * n + 3) := by
+    by_induc
+    · --base case
+      decide
+    · --induction case
+      fix n : Nat
+      intros h
+      show 3 * Sum i from 0 to n + 1, (2 * i + 1) ^ 2 = (n + 1 + 1) * (2 * (n + 1) + 1) * (2 * (n + 1) + 3) from
+        calc (3 * Sum i from 0 to n + 1, (2 * i + 1) ^ 2)
+        _ = 3 * ((Sum i from 0 to n, (2 * i + 1) ^ 2) + (2 * (n + 1) + 1) ^ 2) := by rw [sum_from_zero_step]
+        _ = 3 * (Sum i from 0 to n, (2 * i + 1) ^ 2) + 3 * (2 * (n + 1) + 1) ^ 2 := by linarith
+        _ = (n + 1) * (2 * n + 1) * (2 * n + 3) + 3 * (2 * (n + 1) + 1) ^ 2 := by linarith
+        _ = (n + 1 + 1) * (2 * (n + 1) + 1) * (2 * (n + 1) + 3) := by linarith
+    done
 
 -- 2.
 theorem Exercise_6_3_7b (f : Nat → Real) (c : Real) : ∀ (n : Nat),
-    Sum i from 0 to n, c * f i = c * Sum i from 0 to n, f i := sorry
+    Sum i from 0 to n, c * f i = c * Sum i from 0 to n, f i := by
+    by_induc
+    · --base case
+      rw[sum_base, sum_base]
+    · --induction case
+      fix n : Nat
+      intros ih
+      rw[sum_from_zero_step, sum_from_zero_step, ih]
+      linarith
+    done
+
 
 -- 3.
-theorem fact_pos : ∀ (n : Nat), fact n ≥ 1 := sorry
+theorem fact_pos : ∀ (n : Nat), fact n ≥ 1 := by
+  by_induc
+  · --base
+    decide
+  · --induction
+    fix n: Nat
+    intros ih
+    show fact (n + 1) ≥ 1 from
+      calc fact (n + 1)
+        _ = (n + 1) * (fact n) := by rfl
+        _ ≥ (n + 1) * 1 := by rel [ih]
+        _ = n + 1 := by linarith
+        _ ≥ 1 := by linarith
+    done
 
 -- 4.
 --Hint:  Use the theorem fact_pos from the previous exercise
 theorem Exercise_6_3_13a (k : Nat) : ∀ (n : Nat),
-    fact (k ^ 2 + n) ≥ k ^ (2 * n) := sorry
+    fact (k ^ 2 + n) ≥ k ^ (2 * n) := by
+    by_induc
+    · --base
+      simp
+      apply fact_pos
+    · --induction
+      intros n ih
+      rw [← Nat.add_assoc]
+      have h1 : k ^ 2 ≤ k ^ 2 + n + 1 := by linarith
+      show _ from
+        calc (fact (k ^ 2 + n + 1))
+          _ = (k ^ 2 + n + 1) * fact (k ^ 2 + n) := by rfl
+          _ ≥ (k ^ 2 + n + 1) * k ^ (2 * n) := by rel[ih]
+          _ ≥ k ^ 2 * k ^ (2 * n) := by rel [Nat.mul_le_mul_right, h1]
+          _ = k ^ (2 * (n + 1)) := by ring
+    done
 
 -- 5.
 --Hint:  Use the theorem in the previous exercise.
 --You may find it useful to first prove a lemma:
 --∀ (k : Nat), 2 * k ^ 2 + 1 ≥ k
 theorem Exercise_6_3_13b (k : Nat) : ∀ n ≥ 2 * k ^ 2,
-    fact n ≥ k ^ n := sorry
+    fact n ≥ k ^ n := by
+    have Lemma: ∀ (k: Nat), 2 * k ^ 2 + 1 ≥ k := by
+      by_induc
+      · --k=0
+        linarith
+      · --induction
+        intros n ih
+        show 2 * (n + 1) ^ 2 + 1 ≥ n + 1 from
+          calc 2 * (n + 1) ^ 2 + 1
+            _ = 2 * (n ^ 2 + 2 * n + 1) + 1 := by linarith
+            _ = 2 * n ^ 2 + 1 + 4 * n + 2 := by linarith
+            _ ≥ n + 4 * n + 2 := by linarith
+            _ ≥ n + 1 := by linarith
+      done
+
+    by_induc
+    · --base case
+      have h := by apply Exercise_6_3_13a k (k ^ 2)
+      have g: k ^ 2 + k ^ 2 = 2 * k ^ 2 := by linarith
+      rw [g] at h
+      apply h
+    · --induction case
+      fix n : Nat
+      intros h1 h2
+      -- n + 1 ≥ 2 * k ^ 2 + 1 ≥ k
+      show fact (n + 1) ≥ k ^ (n + 1) from
+        calc fact (n + 1)
+          _ = (n + 1) * fact n := by rfl
+          _ ≥ (n + 1) * k ^ n := by rel[h2]
+          _ ≥ (2 * k ^ 2 + 1) * k ^ n := by rel[h1]
+          _ ≥ k * k ^ n := by rel[Lemma k]
+          _ = k ^ (n + 1) := by ring
+      done
 
 -- 6.
 def seq_6_3_15 (k : Nat) : Int :=
@@ -488,7 +571,28 @@ def seq_6_3_15 (k : Nat) : Int :=
       | n + 1 => 2 * seq_6_3_15 n + n
 
 theorem Exercise_6_3_15 : ∀ (n : Nat),
-    seq_6_3_15 n = 2 ^ n - n - 1 := sorry
+    seq_6_3_15 n = 2 ^ n - n - 1 := by
+    by_induc
+    · --n = 0
+      rfl
+    · --induction
+      intros n h1
+      have h2 : n ≤ n := by linarith
+      have h3 : 2 * ↑n - n = ↑n := by
+        calc 2 * ↑n - n
+          _ = n + n - n := by ring
+          _ = n := by apply Nat.add_sub_cancel
+        done
+
+      show seq_6_3_15 (n + 1) = 2 ^ (n + 1) - ↑(n + 1) - 1 from
+        calc seq_6_3_15 (n + 1)
+          _ = 2 * seq_6_3_15 n + n := by rfl
+          _ = 2 * (2 ^ n - ↑n - 1) + n := by rw [h1]
+          _ = 2 ^ (n + 1) - 2 * ↑n - 2 + n := by ring
+          _ = 2 ^ (n + 1) - (2 * ↑n - n) - 2 := by linarith
+          _ = 2 ^ (n + 1) - n - 2 := by linarith
+          _ = 2 ^ (n + 1) - (n + 1) - 1 := by linarith
+      done
 
 -- 7.
 def seq_6_3_16 (k : Nat) : Nat :=
@@ -497,7 +601,21 @@ def seq_6_3_16 (k : Nat) : Nat :=
       | n + 1 => (seq_6_3_16 n) ^ 2
 
 theorem Exercise_6_3_16 : ∀ (n : Nat),
-    seq_6_3_16 n = ___ := sorry
+    seq_6_3_16 n = 2 ^ (2 ^ n) := by
+    by_induc
+    · --base case
+      rfl
+    · --induction
+      intros n h1
+      show seq_6_3_16 (n + 1) = 2 ^ (2 ^ (n + 1)) from
+        calc seq_6_3_16 (n + 1)
+          _ = (seq_6_3_16 n) ^ 2 := by rfl
+          _ = (2 ^ (2 ^ n)) ^ 2 := by rw[h1]
+          _ = 2 ^ (2 ^ n) * 2 ^ (2 ^ n) := by ring
+          _ = 2 ^ (2 ^ n + 2 ^ n) := by ring
+          _ = 2 ^ (2 * 2 ^ n) := by ring
+          _ = 2 ^ (2 ^ (n + 1)) := by ring
+      done
 
 /- Section 6.4 -/
 -- 1.
