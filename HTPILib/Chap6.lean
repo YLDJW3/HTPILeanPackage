@@ -177,7 +177,18 @@ lemma Lemma_6_2_1_1 {A : Type} {R : BinRel A} {B : Set A} {b c : A}
 
 lemma Lemma_6_2_1_2 {A : Type} {R : BinRel A} {B : Set A} {b c : A}
     (h1 : partial_order R) (h2 : b ∈ B) (h3 : minimalElt R c (B \ {b}))
-    (h4 : ¬R b c) : minimalElt R c B := sorry
+    (h4 : ¬R b c) : minimalElt R c B := by
+    define at h3; define
+    have h3l := h3.left; define at h3l
+    apply And.intro h3l.left
+    have h3r := h3.right; clear h3; quant_neg at h3r
+    by_contra h; obtain x hx from h; clear h
+    apply h3r x
+    apply And.intro _ hx.right
+    define; apply And.intro hx.left
+    contradict h4 with h5; define at h5
+    rw[← h5]; apply hx.right.left
+    done
 
 theorem Example_6_2_1 {A : Type} (R : BinRel A) (h : partial_order R) :
     ∀ n ≥ 1, ∀ (B : Set A), numElts B n →
@@ -229,13 +240,49 @@ theorem Example_6_2_1 {A : Type} (R : BinRel A) (h : partial_order R) :
   done
 
 lemma extendPO_is_ref {A : Type} (R : BinRel A) (b : A)
-    (h : partial_order R) : reflexive (extendPO R b) := sorry
+    (h : partial_order R) : reflexive (extendPO R b) := by
+    define; fix a
+    define; apply Or.inl (h.left a)
+    done
 
 lemma extendPO_is_trans {A : Type} (R : BinRel A) (b : A)
-    (h : partial_order R) : transitive (extendPO R b) := sorry
+    (h : partial_order R) : transitive (extendPO R b) := by
+    define; fix x; fix y; fix z
+    intros h1 h2
+    define at h1; define at h2; define
+    by_cases on h1
+    · by_cases on h2
+      · apply Or.inl
+        apply h.right.left x y z h1 h2
+      · apply Or.inr
+        apply And.intro _ h2.right
+        apply h.right.left x y b h1 h2.left
+    · by_cases on h2
+      · or_right with h3
+        apply And.intro h1.left
+        contradict h1.right with h4
+        apply h.right.left y z b h2 h4
+      · apply Or.inr
+        apply And.intro h1.left h2.right
+    done
 
 lemma extendPO_is_antisymm {A : Type} (R : BinRel A) (b : A)
-    (h : partial_order R) : antisymmetric (extendPO R b) := sorry
+    (h : partial_order R) : antisymmetric (extendPO R b) := by
+    define; fix x; fix y
+    intros h1 h2
+    define at h1; define at h2
+    by_cases on h1
+    · by_cases on h2
+      · apply h.right.right
+        apply h1; apply h2
+      · contradict h2.right with h3
+        apply h.right.left x y b h1 h2.left
+    · by_cases on h2
+      · contradict h1.right with h3
+        apply h.right.left y x b h2 h1.left
+      · contradict h1.right with h3
+        apply h2.left
+    done
 
 lemma extendPO_is_po {A : Type} (R : BinRel A) (b : A)
     (h : partial_order R) : partial_order (extendPO R b) :=

@@ -179,42 +179,282 @@ theorem Exercise_6_1_16a2 :
 -- 1.
 lemma Lemma_6_2_1_2 {A : Type} {R : BinRel A} {B : Set A} {b c : A}
     (h1 : partial_order R) (h2 : b ∈ B) (h3 : minimalElt R c (B \ {b}))
-    (h4 : ¬R b c) : minimalElt R c B := sorry
+    (h4 : ¬R b c) : minimalElt R c B := by
+    define at h3; define
+    have h3l := h3.left; define at h3l
+    apply And.intro h3l.left
+    have h3r := h3.right; clear h3; quant_neg at h3r
+    by_contra h; obtain x hx from h; clear h
+    apply h3r x
+    apply And.intro _ hx.right
+    define; apply And.intro hx.left
+    contradict h4 with h5; define at h5
+    rw[← h5]; apply hx.right.left
+    done
 
 -- 2.
 lemma extendPO_is_ref {A : Type} (R : BinRel A) (b : A)
-    (h : partial_order R) : reflexive (extendPO R b) := sorry
+    (h : partial_order R) : reflexive (extendPO R b) := by
+    define; fix a
+    define; apply Or.inl (h.left a)
+    done
 
 -- 3.
 lemma extendPO_is_trans {A : Type} (R : BinRel A) (b : A)
-    (h : partial_order R) : transitive (extendPO R b) := sorry
+    (h : partial_order R) : transitive (extendPO R b) := by
+    define; fix x; fix y; fix z
+    intros h1 h2
+    define at h1; define at h2; define
+    by_cases on h1
+    · by_cases on h2
+      · apply Or.inl
+        apply h.right.left x y z h1 h2
+      · apply Or.inr
+        apply And.intro _ h2.right
+        apply h.right.left x y b h1 h2.left
+    · by_cases on h2
+      · or_right with h3
+        apply And.intro h1.left
+        contradict h1.right with h4
+        apply h.right.left y z b h2 h4
+      · apply Or.inr
+        apply And.intro h1.left h2.right
+    done
 
 -- 4.
 lemma extendPO_is_antisymm {A : Type} (R : BinRel A) (b : A)
-    (h : partial_order R) : antisymmetric (extendPO R b) := sorry
+    (h : partial_order R) : antisymmetric (extendPO R b) := by
+    define; fix x; fix y
+    intros h1 h2
+    define at h1; define at h2
+    by_cases on h1
+    · by_cases on h2
+      · apply h.right.right
+        apply h1; apply h2
+      · contradict h2.right with h3
+        apply h.right.left x y b h1 h2.left
+    · by_cases on h2
+      · contradict h1.right with h3
+        apply h.right.left y x b h2 h1.left
+      · contradict h1.right with h3
+        apply h2.left
+    done
 
 -- 5.
 theorem Exercise_6_2_3 {A : Type} (R : BinRel A)
     (h : total_order R) : ∀ n ≥ 1, ∀ (B : Set A),
-    numElts B n → ∃ (b : A), smallestElt R b B := sorry
+    numElts B n → ∃ (b : A), smallestElt R b B := by
+    by_induc
+    · --base case, n = 1
+      fix X: Set A
+      assume h1; rw [one_elt_iff_singleton] at h1
+      obtain x hx from h1; clear h1
+      exists x; define
+      apply And.intro
+      ·   rw[hx]; rfl
+      ·   fix y; assume h1
+          rw [hx] at h1; define at h1
+          rw [h1]
+          define at h; apply h.left.left
+    · --induction case
+      define at h
+      fix n : Nat
+      intros h1 h2
+      fix X; assume h3
+      have hn1 : n + 1 > 0 := by linarith
+      have h4 := by apply nonempty_of_pos_numElts h3 hn1
+      obtain a ha from h4; clear h4
+      have h5 := by apply remove_one_numElts h3 ha
+      apply h2 at h5
+      obtain b hb from h5; clear h5
+      have hab := by apply h.right a b
+      by_cases on hab
+      · --R a b
+        exists a
+        define at hb; define
+        apply And.intro ha
+        fix x; assume hx
+        by_cases hxa : x = a
+        · -- x = a
+          rw [hxa]
+          apply h.left.left a
+        · -- x ≠ a
+          have hbx : R b x := by
+            apply hb.right
+            define
+            apply And.intro hx hxa
+          apply h.left.right.left a b x hab hbx
+      · -- R b a
+        exists b; define; define at hb
+        apply And.intro
+        · have hb1 := hb.left; define at hb1
+          apply hb1.left
+        · fix x; assume hx
+          have hb2 := hb.right
+          by_cases hxa: x = a
+          · -- x = a
+            rw [hxa]; apply hab
+          · -- x ≠ a
+            apply hb2
+            define
+            apply And.intro hx hxa
+    done
 
 -- 6.
 --Hint:  First prove that R is reflexive
 theorem Exercise_6_2_4a {A : Type} (R : BinRel A)
     (h : ∀ (x y : A), R x y ∨ R y x) : ∀ n ≥ 1, ∀ (B : Set A),
-    numElts B n → ∃ x ∈ B, ∀ y ∈ B, ∃ (z : A), R x z ∧ R z y := sorry
+    numElts B n → ∃ x ∈ B, ∀ y ∈ B, ∃ (z : A), R x z ∧ R z y := by
+    have Rreflex : reflexive R := by
+      define; fix x
+      have hx := by apply h x x
+      by_cases on hx
+      apply hx; apply hx
+      done
+    by_induc
+    · --base case
+      fix X: Set A
+      intros h1
+      rw [one_elt_iff_singleton] at h1
+      obtain x hx from h1; clear h1
+      exists x
+      apply And.intro
+      · -- x ∈ X
+        rw [hx]; define; rfl
+      · -- ∀ y ∈ X, ∃ (z : A), R x z ∧ R z y
+        fix y; assume hy
+        exists x
+        apply And.intro
+        · apply Rreflex x
+        · rw [hx] at hy; define at hy
+          rw[hy]; apply Rreflex x
+      done
+    · --induction case
+      fix n: Nat
+      intros h1 h2
+      fix X; intro h3
+      have hn1 : n + 1 > 0 := by linarith
+      have h4 := by apply nonempty_of_pos_numElts h3 hn1
+      clear hn1
+      obtain a ha from h4; clear h4
+      have h5 := by apply remove_one_numElts h3 ha
+      apply h2 at h5
+      obtain x hx from h5; clear h5
+      clear h3; clear h2
+      have h2 := hx.left; define at h2
+      have h3 := hx.right; clear hx
+      by_cases hxa: ∃ (z: A), R x z ∧ R z a
+      · --∃ (z: A), R x z ∧ R z a
+        obtain z hz from hxa; clear hxa
+        exists x
+        apply And.intro h2.left
+        fix y; intro hy
+        by_cases hya : y = a
+        · --y=a
+          exists z; rw[hya]; apply hz
+        · --y≠a
+          apply h3; define
+          apply And.intro hy hya
+      · --¬∃ (z : A), R x z ∧ R z a
+        quant_neg at hxa
+        exists a
+        apply And.intro ha
+        fix y; assume hy
+        by_cases hya : y = a
+        · --y=a
+          exists a
+          apply And.intro
+          apply Rreflex a
+          rw [hya]; apply Rreflex a
+        · --y≠a
+          have h: y ∈ X \ {a} := by
+            define
+            apply And.intro hy hya
+            done
+          apply h3 at h
+          obtain z hz from h; clear h
+          have h4 : ¬(R x z ∧ R z a) := by
+            apply hxa
+            done
+          demorgan at h4
+          by_cases on h4
+          · contradict h4; apply hz.left
+          · exists z
+            apply And.intro _ hz.right
+            have haz := by apply h a z
+            disj_syll haz h4
+            apply haz
+      done
 
 -- 7.
 theorem Like_Exercise_6_2_16 {A : Type} (f : A → A)
     (h : one_to_one f) : ∀ (n : Nat) (B : Set A), numElts B n →
-    closed f B → ∀ y ∈ B, ∃ x ∈ B, f x = y := sorry
+    closed f B → ∀ y ∈ B, ∃ x ∈ B, f x = y := by
+    by_induc
+    · --base case
+      fix X: Set A
+      assume h1; rw [zero_elts_iff_empty] at h1; define at h1
+      assume h2
+      fix x; assume h3
+      contradict h1 with h4
+      exists x
+      done
+    · --induction case
+      fix n : Nat
+      intros h1 X h2 h3 y h4
+      define at h
+      define at h3
+      have h5 := by apply remove_one_numElts h2 h4
+      clear h2
+      by_cases h2: closed f (X \ {y})
+      · --closed f (X \ {y})
+        have g1: ∀ z ∈ (X \ {y}), ∃ x ∈ (X \ {y}), f x = z := by
+          apply h1 (X \ {y}) h5 h2
+          done
+        clear h1 h5 h2
+        exists y; apply And.intro h4
+        have g2 := by apply h3 y h4
+        by_contra g3
+        have g4 : f y ∈ X \ {y} := by
+          define; apply And.intro g2
+          define; apply g3
+          done
+        apply g1 at g4
+        obtain x gx from g4
+        clear g1 g2 g3 g4
+        have gxy : x = y := by apply h x y gx.right
+        contradict gx.left
+        define; demorgan; apply Or.inr; define
+        apply gxy
+      · --not closed f (X \ {y})
+        define at h2; quant_neg at h2
+        obtain x g1 from h2; clear h2
+        conditional at g1
+        have g2 := g1.right; define at g2; demorgan at g2
+        have g3 := g1.left; clear g1
+        define at g3
+        exists x; apply And.intro g3.left
+        by_cases on g2
+        · contradict g2;
+          apply h3; apply g3.left
+        · define at g2; apply g2
+    done
 
 -- 8.
 --Hint:  Use Exercise_6_2_2
 theorem Example_6_2_2 {A : Type} (R : BinRel A)
     (h1 : ∃ (n : Nat), numElts {x : A | x = x} n)
     (h2 : partial_order R) : ∃ (T : BinRel A),
-      total_order T ∧ ∀ (x y : A), R x y → T x y := sorry
+      total_order T ∧ ∀ (x y : A), R x y → T x y := by
+    obtain n h3 from h1; clear h1
+    have h1 := by apply Exercise_6_2_2 R h2 n {x: A | x = x} h3
+    obtain T h from h1; clear h1; clear h3
+    exists T; apply And.intro _ h.right.left
+    define; apply And.intro h.left
+    intros x y
+    apply h.right.right
+    define; rfl
+    done
 
 /- Section 6.3 -/
 -- 1.
