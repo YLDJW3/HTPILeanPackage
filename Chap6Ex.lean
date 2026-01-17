@@ -621,31 +621,267 @@ theorem Exercise_6_3_16 : ∀ (n : Nat),
 -- 1.
 --Hint: Use Exercise_6_1_16a1 and Exercise_6_1_16a2
 lemma sq_even_iff_even (n : Nat) :
-    nat_even (n * n) ↔ nat_even n := sorry
+    nat_even (n * n) ↔ nat_even n := by
+    apply Iff.intro
+    · -- (->)
+      intros h
+      have h1 := by apply Exercise_6_1_16a1 n
+      by_cases on h1
+      · --even n
+        apply h1
+      · --odd n
+        define at h1
+        obtain m hm from h1; clear h1
+        have h2 : nat_odd (n * n) := by
+          define
+          -- 4 * m ^ 2 + 4 * m + 1
+          exists  2 * m ^ 2 + 2 * m
+          rw[hm]; ring
+          done
+        contradict Exercise_6_1_16a2; quant_neg
+        exists n * n
+    · -- (<-)
+      intros h; define at h
+      obtain k hk from h; clear h
+      define; exists 2 * k * k
+      rw [hk]
+      ring
+    done
 
 -- 2.
 --This theorem proves that the square root of 6 is irrational
 theorem Exercise_6_4_4a :
-    ¬∃ (q p : Nat), p * p = 6 * (q * q) ∧ q ≠ 0 := sorry
+    ¬∃ (q p : Nat), p * p = 6 * (q * q) ∧ q ≠ 0 := by
+    set S : Set Nat :=
+      {q : Nat | ∃ (p : Nat), p * p = 6 * (q * q) ∧ q ≠ 0}
+    by_contra h1
+    have h2 : ∃ (q: Nat), q ∈ S := h1
+    have h3 := well_ord_princ S h2; clear h2
+    obtain q hq from h3; clear h3
+    have h2 := hq.left; define at h2
+    have h3 := hq.right; clear hq
+    obtain p h4 from h2; clear h2
+    have h5 := h4.left; have h2 := h4.right; clear h4
+    -- p * p is even, so p is even
+    have g1 : nat_even (p * p) := by
+      define; exists 3 * q * q
+      rw [h5]; ring
+      done
+    rw [sq_even_iff_even] at g1
+    define at g1; obtain p' g2 from g1; clear g1
+    rw [g2] at h5
+    have g1 : 2 * p' * p' = 3 * q * q := by linarith
+    -- 3 * q * q is even
+    -- so q * q must be even, q is even
+    clear h5
+    have g3 : nat_even (3 * (q * q)) := by
+      define; exists p' * p'
+      rw [← mul_assoc, ← g1]; ring
+      done
+    have g4 : nat_even (q * q) := by
+      -- prove by contradiction, assuming q * q is odd
+      -- then prove 3 * q * q is also odd
+      have f1 := by apply Exercise_6_1_16a1 (q * q)
+      by_cases on f1
+      · apply f1
+      · define at f1; obtain k f3 from f1; clear f1
+        have contra: nat_odd (3 * (q * q)) := by
+          define; rw[f3]; exists (3 * k + 1)
+          ring
+          done
+        contradict Exercise_6_1_16a2
+        quant_neg
+        exists 3 * (q * q)
+      done
+    -- q = 2 * q', then p' * p' = 6 * q' * q'
+    -- q' ∈ S, contracdicted with q is smallest
+    rw [sq_even_iff_even] at g4
+    define at g4; obtain q' g5 from g4; clear g4
+    rw[g5] at g1
+    -- prove q' ∈ S
+    have hleft: 2 * (p' * p') = 2 * (6 * (q' * q')) := by
+      calc 2 * (p' * p')
+        _ = 2 * p' * p' := by rw[mul_assoc]
+        _ = 3 * (2 * q') * (2 * q') := by rw[g1]
+        _ = 2 * (6 * (q' * q')) := by ring
+    have g6 : 2 > 0 := by linarith
+    rw [mul_left_cancel_iff_of_pos g6] at hleft
+    have hright: q' ≠ 0 := by
+      contradict h2 with h4
+      rw [h4] at g5
+      rw [g5]
+      done
+    have h : q' ∈ S := by
+      define
+      exists p'
+      done
+    -- contradict with q is smallest element of S
+    have qleq': q ≤ q' := by apply h3 q' h
+    rw[g5] at qleq'
+    contradict hright
+    linarith
+    done
 
 -- 3.
 theorem Exercise_6_4_5 :
-    ∀ n ≥ 12, ∃ (a b : Nat), 3 * a + 7 * b = n := sorry
+    ∀ n ≥ 12, ∃ (a b : Nat), 3 * a + 7 * b = n := by
+    by_strong_induc
+    intros n h1 h2
+    have g1 : 3 > 0 := by linarith
+    have h3 := by apply Example_6_4_1 3 g1 n
+    clear g1
+    obtain q g1 from h3; clear h3
+    obtain r g from g1; clear g1
+    have g1 := g.left; have g2 := g.right; clear g
+    by_cases g3 : r = 0
+    · -- r = 0
+      rw[g3] at g1
+      exists q; exists 0
+      rw [g1]
+    · -- not r = 0
+      by_cases g4 : r = 1
+      · -- r = 1
+        rw [g4] at g1
+        have g5: q ≥ 2 := by linarith
+        have g6 := by apply Nat.exists_eq_add_of_le g5
+        obtain q' g7 from g6; clear g5; clear g6
+        exists q'; exists 1
+        rw[g1, g7]; ring
+      · -- r = 2
+        have g5 : q ≥ 4 := by linarith
+        have g6 : r ≥ 1 := Nat.pos_of_ne_zero g3; clear g3
+        have g7 : r ≥ 2 := lt_of_le_of_ne' g6 g4; clear g4; clear g6
+        have g3 := by apply Nat.exists_eq_add_of_le g5
+        obtain q' gq' from g3; clear g3
+        have g3 : r = 2 := by linarith
+        clear g2; clear g7; clear g5
+        exists q'; exists 2
+        rw [g1, gq', g3]
+        ring
+    done
 
 -- 4.
 theorem Exercise_6_4_7a : ∀ (n : Nat),
-    (Sum i from 0 to n, Fib i) + 1 = Fib (n + 2) := sorry
+    (Sum i from 0 to n, Fib i) + 1 = Fib (n + 2) := by
+  by_strong_induc
+  intros n h1
+  by_cases h2: n = 0
+  · -- n = 0
+    rw[h2, sum_base]
+    rfl
+  · -- n > 0
+    have h3 := by apply exists_eq_add_one_of_ne_zero h2
+    clear h2; obtain n' h2 from h3; clear h3
+    rw[h2, sum_from_zero_step]
+    have g: n > n' := by linarith
+    have h3 := by apply h1 n' g
+    clear g
+    calc (Sum i from 0 to n', Fib i) + Fib (n' + 1) + 1
+      _ = (Sum i from 0 to n', Fib i) + 1 + Fib (n' + 1) := by ring
+      _ = Fib (n' + 2) + Fib (n' + 1) := by rw [h3]
+      _ = Fib (n' + 1) + Fib (n' + 2) := by ring
+  done
 
 -- 5.
 theorem Exercise_6_4_7c : ∀ (n : Nat),
-    Sum i from 0 to n, Fib (2 * i + 1) = Fib (2 * n + 2) := sorry
+    Sum i from 0 to n, Fib (2 * i + 1) = Fib (2 * n + 2) := by
+    by_strong_induc
+    intros n h1
+    by_cases h: n = 0
+    · -- n = 0
+      rw[h, sum_base]
+      rfl
+    · -- n > 0
+      have h2 := by apply exists_eq_add_one_of_ne_zero h
+      clear h; obtain n' h3 from h2; clear h2
+      rw[h3, sum_from_zero_step]
+      have g: n > n' := by linarith
+      have h2 := by apply h1 n' g
+      clear g; clear h3
+      calc (Sum i from 0 to n', Fib (2 * i + 1)) + Fib (2 * (n' + 1) + 1)
+        _ = Fib (2 * n' + 2) + Fib (2 * (n' + 1) + 1) := by rw[h2]
+    done
 
 -- 6.
 theorem Exercise_6_4_8a : ∀ (m n : Nat),
-    Fib (m + n + 1) = Fib m * Fib n + Fib (m + 1) * Fib (n + 1) := sorry
+    Fib (m + n + 1) = Fib m * Fib n + Fib (m + 1) * Fib (n + 1) := by
+    by_strong_induc
+    intros m h1 n
+    by_cases h: m = 0
+    · --m = 0
+      rw [h]
+      symm
+      calc Fib 0 * Fib n + Fib (0 + 1) * Fib (n + 1)
+        _ = 0 * Fib n + Fib 1 * Fib (n + 1) := by rfl
+        _ = 0 + Fib 1 * Fib (n + 1) := by ring
+        _ = 0 + 1 * Fib (n + 1) := by rfl
+        _ = Fib (0 + n + 1) := by ring
+      done
+    · --m > 0
+      by_cases h2: m = 1
+      · --m = 1
+        rw [h2]; ring
+        calc Fib (2 + n)
+          _ = Fib (n + 2) := by ring
+          _ = Fib n + Fib (n + 1) := by rfl
+          _ = 1 * Fib n + 1 * Fib (1 + n) := by ring
+          _ = Fib 1 * Fib n + Fib 2 * Fib (1 + n) := by rfl
+        done
+      · --m >= 2
+        have h3 := by apply exists_eq_add_two_of_ne_zero_one h h2
+        clear h; clear h2; obtain m' h2 from h3; clear h3
+        have g1 : m' + 1 < m := by linarith
+        have h3 := by apply h1 (m' + 1) g1 (n + 1)
+        rw[h2]; ring
+        have g2 : Fib (3 + m' + n) = Fib (m' + 1 + (n + 1) + 1) := by ring
+        rw [g2, h3]; ring
+        clear g2; clear h3
+        have g2 : Fib (2 + n) = Fib n + Fib (n + 1) := by
+          calc Fib (2 + n)
+          _ = Fib (n + 2) := by ring
+          _ = Fib n + Fib (n + 1) := by rfl
+        rw [g2]; ring; clear g2
+        have g2 : Fib (3 + m') = Fib (m' + 1) + Fib (m' + 2) := by
+          calc Fib (3 + m')
+          _ = Fib (m' + 1 + 2) := by ring
+          _ = Fib (m' + 1) + Fib (m' + 2) := by rfl
+        rw [g2]; ring
+      done
 
 -- 7.
-theorem Exercise_6_4_8d : ∀ (m k : Nat), Fib m ∣ Fib (m * k) := sorry
+theorem Exercise_6_4_8d : ∀ (m k : Nat), Fib m ∣ Fib (m * k) := by
+  intros m
+  by_induc
+  · --base k = 0
+    define
+    exists 0
+  · --induction
+    intros k h
+    define at h; obtain c h1 from h; clear h
+    define
+    by_cases h: m = 0 ∨ k = 0
+    · by_cases on h
+      · --m = 0
+        rw [h]; ring; exists 1
+      · --k = 0
+        rw [h]; exists 1; ring
+    · -- m > 0 and k > 0
+      demorgan at h
+      have h2 : m * k ≠ 0 := by
+        rw [mul_ne_zero_iff]
+        apply h
+        done
+      have h3 := by apply exists_eq_add_one_of_ne_zero h2
+      clear h; clear h2
+      obtain j h2 from h3; clear h3
+      have h3 : m * (k + 1) = j + m + 1 := by linarith
+      rw [h3]; clear h3
+      have h4 := by apply Exercise_6_4_8a j m
+      rw[← h2, h1] at h4
+      exists Fib j + c * Fib (m + 1)
+      rw[h4]
+      ring
+    done
 
 -- 8.
 def Fib_like (n : Nat) : Nat :=
@@ -654,7 +890,32 @@ def Fib_like (n : Nat) : Nat :=
     | 1 => 2
     | k + 2 => 2 * (Fib_like k) + Fib_like (k + 1)
 
-theorem Fib_like_formula : ∀ (n : Nat), Fib_like n = 2 ^ n := sorry
+theorem Fib_like_formula : ∀ (n : Nat), Fib_like n = 2 ^ n := by
+  by_strong_induc
+  intros n h
+  by_cases g1: n = 0
+  · --n = 0
+    rw [g1]
+    rfl
+  · --n > 0
+    by_cases g2: n = 1
+    · --n = 1
+      rw [g2]
+      rfl
+    · --n > 1
+      have g3 := by apply exists_eq_add_two_of_ne_zero_one g1 g2
+      clear g1; clear g2
+      obtain n' g1 from g3; clear g3
+      rw[g1]
+      have g2: n' < n := by linarith
+      have g3: n' + 1 < n := by linarith
+      have h1 := by apply h n' g2
+      have h2 := by apply h (n' + 1) g3
+      calc Fib_like (n' + 2)
+        _ = 2 * (Fib_like n') + Fib_like (n' + 1) := by rfl
+        _ = 2 * 2 ^ n' + 2 ^ (n' + 1) := by rw[h1, h2]
+        _ = 2 ^ (n' + 2) := by ring
+    done
 
 -- 9.
 def triple_rec (n : Nat) : Nat :=
@@ -666,19 +927,127 @@ def triple_rec (n : Nat) : Nat :=
                 6 * triple_rec (k + 1) + triple_rec (k + 2)
 
 theorem triple_rec_formula :
-    ∀ (n : Nat), triple_rec n = 2 ^ n * Fib n := sorry
+    ∀ (n : Nat), triple_rec n = 2 ^ n * Fib n := by
+    by_strong_induc
+    intros n h1
+    by_cases g1: n = 0
+    · --n = 0
+      rw [g1]; rfl
+    · by_cases g2: n = 1
+      · --n = 1
+        rw [g2]; rfl
+      · by_cases g3: n = 2
+        · --n = 2
+          rw [g3]; rfl
+        · --n >= 3
+          have h2: 1 ≤ n := Nat.pos_of_ne_zero g1
+          have h3: 2 ≤ n := lt_of_le_of_ne' h2 g2
+          have h4: 3 ≤ n := lt_of_le_of_ne' h3 g3
+          have g := by apply Nat.exists_eq_add_of_le' h4
+          clear h2; clear h3; clear h4
+          clear g1; clear g2; clear g3
+          obtain n' g1 from g; clear g
+          rw[g1]
+          have g2: n' < n := by linarith
+          have g3: n' + 1 < n := by linarith
+          have g4: n' + 2 < n := by linarith
+          have h2 := by apply h1 n' g2
+          have h3 := by apply h1 (n' + 1) g3
+          have h4 := by apply h1 (n' + 2) g4
+          calc triple_rec (n' + 3)
+            _ = 4 * triple_rec n' + 6 * triple_rec (n' + 1) + triple_rec (n' + 2) := by rfl
+            _ = 4 * (2 ^ n' * Fib n') + 6 * (2 ^ (n' + 1) * Fib (n' + 1)) + (2 ^ (n' + 2) * Fib (n' + 2)) := by rw[h2, h3, h4]
+            _ = 2 ^ (n' + 2) * (Fib n' + Fib (n' + 1)) + 2 * 2 ^ (n' + 2) * Fib (n' + 1) + 2 ^ (n' + 2) * Fib (n' + 2) := by ring
+            _ = 2 ^ (n' + 2) * Fib (n' + 2) + 2 * 2 ^ (n' + 2) * Fib (n' + 1) + 2 ^ (n' + 2) * Fib (n' + 2) := by rfl
+            _ = 2 * 2 ^ (n' + 2) * Fib (n' + 1) + 2 * 2 ^ (n' + 2) * Fib (n' + 2) := by ring
+            _ = 2 ^ (n' + 3) * (Fib (n' + 1) + Fib (n' + 2)) := by ring
+            _ = 2 ^ (n' + 3) * Fib (n' + 3) := by rfl
+        done
 
 -- 10.
 lemma quot_rem_unique_lemma {m q r q' r' : Nat}
-    (h1 : m * q + r = m * q' + r') (h2 : r' < m) : q ≤ q' := sorry
+    (h1 : m * q + r = m * q' + r') (h2 : r' < m) : q ≤ q' := by
+    #check Nat.add_sub_cancel
+    have h3 : r' = r + m * q - m * q' := by
+      calc r'
+        _ = r' + m * q' - m * q' := by rw [Nat.add_sub_cancel]
+        _ = m * q' + r' - m * q' := by ring
+        _ = m * q + r - m * q' := by rw[h1]
+        _ = r + m * q - m * q' := by ring
+    rw [h3] at h2
+    by_contra h4
+    have g : q > q' := by linarith
+    have g1 : 0 < q - q' := by apply Nat.zero_lt_sub_of_lt g
+    clear h4
+    have h4 := by
+      calc m * q - m * q'
+        _ = m * (q - q') := by rw[Nat.mul_sub_left_distrib]
+        _ ≥ m := by apply Nat.le_mul_of_pos_right m g1
+    have g2 : q' ≤ q := by linarith
+    have g3 : m * q' ≤ m * q := by apply Nat.mul_le_mul_left m g2
+    have h5 : r + m * q - m * q' ≥ m := by
+      calc r + m * q - m * q'
+        _ = r + (m * q - m * q') := by apply Nat.add_sub_assoc g3
+        _ ≥ r + m := by linarith
+        _ ≥ m := by linarith
+    contradict h2
+    apply Nat.not_lt_of_ge at h5
+    apply h5
+    done
 
 theorem quot_rem_unique (m q r q' r' : Nat)
     (h1 : m * q + r = m * q' + r') (h2 : r < m) (h3 : r' < m) :
-    q = q' ∧ r = r' := sorry
+    q = q' ∧ r = r' := by
+    have h4 := by apply quot_rem_unique_lemma h1 h3
+    symm at h1
+    have h5 := by apply quot_rem_unique_lemma h1 h2
+    have h : q = q' := by apply eq_of_le_of_ge h4 h5
+    apply And.intro h
+    rw[h] at h1
+    calc r
+      _ = r + m * q' - m * q' := by rw [Nat.add_sub_cancel r (m * q')]
+      _ = m * q' + r - m * q' := by ring
+      _ = m * q' + r' - m * q' := by rw[h1]
+      _ = r' + m * q' - m * q' := by ring
+      _ = r' := by rw [Nat.add_sub_cancel]
+    done
 
 -- 11.
 theorem div_mod_char (m n q r : Nat)
-    (h1 : n = m * q + r) (h2 : r < m) : q = n / m ∧ r = n % m := sorry
+    (h1 : n = m * q + r) (h2 : r < m) : q = n / m ∧ r = n % m := by
+    apply And.intro
+    · -- q = n / m
+      have g1 : 0 < m := by linarith
+      symm; rw [Nat.div_eq_iff g1]
+      apply And.intro
+      · --q * m ≤ n
+        linarith
+      · --n ≤ q * m + m - 1
+        have g2 : m ≠ 0 := by linarith
+        have g3 := by apply exists_eq_add_one_of_ne_zero g2
+        clear g2; obtain m' g2 from g3; clear g3
+        rw [g2] at h2
+        have g3 : r ≤ m' := by apply Nat.le_of_lt_add_one h2
+        have g4 : m' = m - 1 := by
+          calc m'
+            _ = m' + 1 - 1 := by apply Nat.add_sub_cancel m' 1
+            _ = m - 1 := by rw[g2]
+          done
+        have g5 : 1 ≤ m := by linarith
+        calc n
+          _ = m * q + r := by rw [h1]
+          _ = q * m + r := by ring
+          _ ≤ q * m + m' := by rel[g3]
+          _ = q * m + (m - 1) := by rw[g4]
+          _ = q * m + m - 1 := by rw[Nat.add_sub_assoc g5]
+        done
+    · -- r = n % m
+      symm
+      rw [Nat.mod_eq_iff]
+      apply Or.inr
+      apply And.intro h2
+      exists q
+    done
 
 /- Section 6.5 -/
 -- Definitions for next three exercises

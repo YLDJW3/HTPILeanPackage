@@ -104,7 +104,8 @@
     `rfl` tactic
 4. `ring` tactic
     `ring` can combine algebraic laws involving addition, subtraction, multiplication, and exponentiation with natural number exponents to prove many equations in one step
-# Ch6 Mathematcial Induction
+# Ch6 Mathematical Induction
+## 6.1 Proof by mathematical induction
 1. `by_induc`
 2. `Sum`
     1. `sum_base`
@@ -131,4 +132,6 @@
     The truth or falsity of the inequality in the base case can be decided by simply doing the necessary arithmetic
 5. `linarith`
     The tactic `linarith` makes inferences that involve combining **linear equations and inequalities**
-
+## 6.4 Strong induction
+1. **Division algorithm**: For all natural numbers n and m, if m > 0 then there are natural numbers q and r such that n = qm + r and r < m
+2. **Well-ordering principle**: Every **nonempty** set of natural numbers has a **smallest** element
