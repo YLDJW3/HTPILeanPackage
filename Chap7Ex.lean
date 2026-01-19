@@ -230,48 +230,334 @@ theorem Exercise_7_1_10 (a b n : Nat) :
 /- Section 7.2 -/
 -- 1.
 lemma dvd_prime {a p : Nat}
-    (h1 : prime p) (h2 : a ∣ p) : a = 1 ∨ a = p := sorry
+    (h1 : prime p) (h2 : a ∣ p) : a = 1 ∨ a = p := by
+    define at h1
+    define at h2; obtain b h3 from h2
+    contradict h1.right with h
+    -- a * b = p ∧ a < p ∧ b < p
+    exists a; exists b
+    symm at h3
+    apply And.intro h3
+    -- a < p
+    demorgan at h
+    have g1: 0 < p := by linarith
+    have g2: a ≤ p := by apply Nat.le_of_dvd g1 h2
+    have g3: a < p := by apply Nat.lt_of_le_of_ne g2 h.right
+    apply And.intro g3
+    clear g2
+    -- b < p
+    have f1: b ∣ p := by
+      define; exists a; rw [← h3]; ring
+    have f2: 0 < b := by apply Nat.pos_of_dvd_of_pos f1 g1
+    have f3: b ≤ p := by apply Nat.le_of_dvd g1 f1
+    apply Nat.lt_of_le_of_ne f3
+    contradict h.left with f4
+    rw [f4] at h3
+    have f: a * p = 1 * p := by rw[h3]; ring
+    apply Nat.mul_right_cancel at f
+    apply f; apply g1
+    done
 
 -- 2.
 -- Hints:  Start with apply List.rec.  You may find mul_ne_zero useful
 theorem prod_nonzero_nonzero : ∀ (l : List Nat),
-    (∀ a ∈ l, a ≠ 0) → prod l ≠ 0 := sorry
+    (∀ a ∈ l, a ≠ 0) → prod l ≠ 0 := by
+    apply List.rec
+    · --nil case
+      intros h; decide
+    · --cons case
+      intros a L h1 h2
+      rw[prod]; rw [Nat.mul_ne_zero_iff]
+      apply And.intro
+      · -- a ≠ 0
+        apply h2
+        apply List.mem_cons_self
+      · -- prod L ≠ 0
+        apply h1
+        intros x h3
+        apply h2; apply List.mem_cons_of_mem
+        apply h3
+    done
 
 -- 3.
+lemma prime_two: prime 2 := by
+    define
+    apply And.intro
+    linarith
+    by_contra g3
+    obtain x tmp from g3; clear g3
+    obtain y g3 from tmp; clear tmp
+    have g4: x ≠ 0 ∧ y ≠ 0 := by
+      have g5 : x * y ≠ 0 := by linarith
+      rw [mul_ne_zero_iff] at g5
+      apply g5
+    have gx : x > 0 := by
+      have g5 := g4.left
+      rw [Nat.ne_zero_iff_zero_lt] at g5
+      apply g5
+    have gy : y > 0 := by
+      have g5 := g4.right
+      rw [Nat.ne_zero_iff_zero_lt] at g5
+      apply g5
+    have gx1 : x = 1 := by linarith
+    have gy1 : y = 1 := by linarith
+    contradict g3.left
+    rw [gx1, gy1]
+    decide
+
 theorem rel_prime_iff_no_common_factor (a b : Nat) :
-    rel_prime a b ↔ ¬∃ (p : Nat), prime p ∧ p ∣ a ∧ p ∣ b := sorry
+    rel_prime a b ↔ ¬∃ (p : Nat), prime p ∧ p ∣ a ∧ p ∣ b := by
+    apply Iff.intro
+    · -- rel_prime a b → ¬∃ (p : ℕ), prime p ∧ p ∣ a ∧ p ∣ b
+      intros h1; define at h1
+      contradict h1 with h2
+      obtain p h3 from h2; clear h2
+      have h2: gcd a b ≠ 0 := by linarith
+      have h4 := by apply gcd_greatest h2 h3.right.left h3.right.right
+      have h5 : 2 ≤ p := by
+        have g1 := h3.left
+        define at g1
+        apply g1.left
+        done
+      linarith
+    · --(¬∃ (p : ℕ), prime p ∧ p ∣ a ∧ p ∣ b) → rel_prime a b
+      intros h1; define
+      contradict h1 with h2; clear h1
+      by_cases g1: a = 0 ∧ b = 0
+      · --a = 0 ∧ b = 0
+        exists 2
+        apply And.intro prime_two
+        rw [g1.left, g1.right]
+        decide
+      . --¬(a = 0 ∧ b = 0)
+        demorgan at g1
+        have g2: gcd a b ≠ 0:= by
+          apply gcd_is_nonzero
+          apply g1
+          done
+        have g3: 1 ≤ gcd a b := by apply pos_of_ne_zero g2
+        have g4: 2 ≤ gcd a b := by apply lt_of_le_of_ne' g3 h2
+        have g5 := by apply exists_least_prime_factor g4
+        obtain p g6 from g5; clear g5
+        have pa := g6.left; define at pa
+        exists p
+        apply And.intro pa.left
+        apply And.intro
+        · -- p | a
+          apply dvd_trans pa.right (gcd_dvd_left a b)
+        · -- p | b
+          apply dvd_trans pa.right (gcd_dvd_right a b)
+        done
 
 -- 4.
 theorem rel_prime_symm {a b : Nat} (h : rel_prime a b) :
-    rel_prime b a := sorry
+    rel_prime b a := by
+    define at h; define
+    rw [gcd_comm] at h
+    apply h
 
 -- 5.
 lemma in_prime_factorization_iff_prime_factor {a : Nat} {l : List Nat}
     (h1 : prime_factorization a l) (p : Nat) :
-    p ∈ l ↔ prime_factor p a := sorry
+    p ∈ l ↔ prime_factor p a := by
+    apply Iff.intro
+    · --p ∈ l → prime_factor p a
+      intros h2
+      define at h1; define
+      have g1:= h1.left.left; define at g1
+      apply And.intro
+      · --prime p
+        apply g1; apply h2
+      · --p | a
+        have g2 := h1.right
+        rw [← g2]
+        apply list_elt_dvd_prod
+        apply h2
+    · --prime_factor p a → p ∈ l
+      intros h2; define at h2
+      define at h1
+      have g1:= h1.left.left
+      rw [← h1.right] at h2
+      apply prime_in_list
+      apply h2.left; apply g1; apply h2.right
+      done
 
 -- 6.
 theorem Exercise_7_2_5 {a b : Nat} {l m : List Nat}
     (h1 : prime_factorization a l) (h2 : prime_factorization b m) :
-    rel_prime a b ↔ (¬∃ (p : Nat), p ∈ l ∧ p ∈ m) := sorry
+    rel_prime a b ↔ (¬∃ (p : Nat), p ∈ l ∧ p ∈ m) := by
+    apply Iff.intro
+    · --rel_prime a b → ¬∃ p ∈ l, p ∈ m
+      intros h3; define at h3
+      by_contra h4; obtain p h5 from h4; clear h4
+      define at h1; define at h2
+      have g1:= h5.left
+      apply list_elt_dvd_prod at g1; rw [h1.right] at g1
+      have g2:= h5.right
+      apply list_elt_dvd_prod at g2; rw [h2.right] at g2
+      have g3:= h1.left.left
+      have g4: prime p := by
+        apply g3; apply h5.left
+      have h4: gcd a b ≠ 0 := by linarith
+      have g5:= by apply gcd_greatest h4 g1 g2
+      rw [h3] at g5
+      contradict g5
+      define at g4
+      have g6:= g4.left
+      linarith
+    · --(¬∃ p ∈ l, p ∈ m) → rel_prime a b
+      intros h3
+      rw [rel_prime_iff_no_common_factor]
+      contradict h3 with h4; clear h3
+      obtain p h3 from h4; clear h4
+      exists p
+      define at h1; define at h2
+      apply And.intro
+      · -- p ∈ l
+        apply prime_in_list
+        apply h3.left; apply h1.left.left
+        rw [h1.right]; apply h3.right.left
+      · --p ∈ m
+        apply prime_in_list
+        apply h3.left; apply h2.left.left
+        rw [h2.right]; apply h3.right.right
+      done
 
 -- 7.
 theorem Exercise_7_2_6 (a b : Nat) :
-    rel_prime a b ↔ ∃ (s t : Int), s * a + t * b = 1 := sorry
+    rel_prime a b ↔ ∃ (s t : Int), s * a + t * b = 1 := by
+    apply Iff.intro
+    · --rel_prime a b → ∃ (s : ℤ) (t : ℤ), s * ↑a + t * ↑b = 1
+      intros h1; define at h1
+      have h2:= by apply gcd_lin_comb b a
+      exists gcd_c1 a b
+      exists gcd_c2 a b
+      rw [h2]
+      rw [h1]
+      rfl
+    · --(∃ (s : ℤ) (t : ℤ), s * ↑a + t * ↑b = 1) → rel_prime a b
+      intros h1
+      define
+      rw [Exercise_7_1_5 a b ↑1] at h1
+      define at h1
+      obtain x hx from h1; clear h1
+      symm at hx
+      rw [Int.mul_eq_one_iff_eq_one_or_neg_one] at hx
+      by_cases on hx
+      · linarith
+      · have h1 := by apply Int.natCast_nonneg (gcd a b)
+        linarith -- ↑(gcd a b) can't be negative
+    done
 
 -- 8.
 theorem Exercise_7_2_7 {a b a' b' : Nat}
     (h1 : rel_prime a b) (h2 : a' ∣ a) (h3 : b' ∣ b) :
-    rel_prime a' b' := sorry
+    rel_prime a' b' := by
+    rw [Exercise_7_2_6] at h1
+    obtain s tmp from h1; clear h1
+    obtain t h1 from tmp; clear tmp
+    define at h2; obtain k1 hk1 from h2; clear h2
+    define at h3; obtain k2 hk2 from h3; clear h3
+    rw [Exercise_7_2_6]
+    exists s * k1
+    exists t * k2
+    calc s * ↑k1 * ↑a' + t * ↑k2 * ↑b'
+      _ = s * ↑(a' * k1) + t * ↑(b' * k2) := by
+        rw [Nat.cast_mul, Nat.cast_mul, Int.mul_comm ↑a',
+        Int.mul_comm ↑b', Int.mul_assoc, Int.mul_assoc]
+      _ = s * ↑a + t * ↑b := by rw [hk1, hk2]
+      _ = 1 := by rw[h1]
+    done
 
 -- 9.
 theorem Exercise_7_2_9 {a b j k : Nat}
     (h1 : gcd a b ≠ 0) (h2 : a = j * gcd a b) (h3 : b = k * gcd a b) :
-    rel_prime j k := sorry
+    rel_prime j k := by
+    have g1:= by apply gcd_dvd_left j k
+    define at g1
+    obtain k1 h4 from g1; clear g1
+    have g2:= by apply gcd_dvd_right j k
+    define at g2
+    obtain k2 h5 from g2; clear g2
+    rw [h4] at h2
+    rw [h5] at h3
+    have g1: (gcd j k * gcd a b) ∣ a := by
+      define; exists k1
+      nth_rw 1 [h2];
+      ring
+    have g2: (gcd j k * gcd a b) ∣ b := by
+      define; exists k2
+      nth_rw 1 [h3]; ring
+    have g3 := by apply gcd_greatest h1 g1 g2
+    have g4 : 0 < gcd a b := by apply pos_of_ne_zero h1
+    have g5: gcd a b = 1 * gcd a b := by linarith
+    nth_rw 2 [g5] at g3
+    rw [Nat.mul_le_mul_right_iff g4] at g3
+    define
+    -- proof by contradiction: suppose gcd j k = 0, then gcd a b = 0
+    contradict h1 with contra
+    have g6: gcd j k < 1 := by apply Nat.lt_of_le_of_ne g3 contra
+    have g7: gcd j k = 0 := by linarith
+    rw [g7] at h3
+    rw [g7] at h2
+    have bzero : b = 0 := by linarith
+    have azero : a = 0 := by linarith
+    rw [bzero, azero, gcd]
+    done
 
 -- 10.
 theorem Exercise_7_2_17a (a b c : Nat) :
-    gcd a (b * c) ∣ gcd a b * gcd a c := sorry
+    gcd a (b * c) ∣ gcd a b * gcd a c := by
+    have h1 := by apply gcd_lin_comb b a
+    have h2 := by apply gcd_lin_comb c a
+    have h3 := by apply gcd_dvd_left a (b * c)
+    obtain x (hx: a = gcd a (b * c) * x) from h3
+    have h4 := by apply gcd_dvd_right a (b * c)
+    obtain y (hy: b * c = gcd a (b * c) * y) from h4
+    clear h4
+    set k1 := gcd_c1 a b
+    set k2 := gcd_c2 a b
+    set k3 := gcd_c1 a c
+    set k4 := gcd_c2 a c
+    set k := gcd a (b * c)
+    rw [←Int.natCast_dvd_natCast]
+    rw[mul_comm] at hx
+    rw[mul_comm _ y] at hy
+    define
+    exists (k1*↑a*k3*↑x + k1*k4*↑c*↑x + k2*↑b*k3*↑x + k2*k4*↑y)
+    calc ↑(gcd a b * gcd a c)
+      _ = (k1 * ↑a + k2 * ↑b) * (k3 * ↑a + k4 * ↑c) := by rw[h1, h2, Nat.cast_mul]
+      _ = k1 * ↑a * k3 * ↑a + k1 * ↑a * k4 * ↑c + k2 * ↑b * k3 * ↑a + k2 * ↑b * k4 * ↑c := by
+        rw[right_distrib, left_distrib, left_distrib]
+        repeat rw[← mul_assoc]
+        rw [← add_assoc]
+      _ = k1 * ↑a * k3 * ↑x * ↑k + k1 * k4 * ↑c * ↑x * ↑k + ↑k2 * ↑b * k3 * ↑x * ↑k + k2 * k4 * ↑y * ↑k := by
+        nth_rw 2 [hx]; rw [Nat.cast_mul, ← mul_assoc]
+        have g1: k1 * ↑a * k4 * ↑c = k1 * k4 * ↑c * ↑x * ↑k := by
+          rw [hx]; nth_rw 2 [mul_right_comm]
+          nth_rw 1 [mul_right_comm]; rw [Nat.cast_mul, ← mul_assoc]
+          done
+        rw [g1]
+        nth_rw 2 [hx]; rw [Nat.cast_mul, ← mul_assoc]
+        have g2: k2 * ↑b * k4 * ↑c = k2 * k4 * ↑y * ↑k := by
+          rw [mul_right_comm]
+          nth_rw 2 [mul_assoc]; rw [← Nat.cast_mul]
+          rw [mul_right_comm]; rw[hy, Nat.cast_mul, ← mul_assoc]
+          done
+        rw [g2]
+      _ = (k1 * ↑a * k3 * ↑x + k1 * k4 * ↑c * ↑x + ↑k2 * ↑b * k3 * ↑x + k2 * k4 * ↑y) * ↑k := by
+        repeat rw [right_distrib]
+      _ = ↑k * (k1 * ↑a * k3 * ↑x + k1 * k4 * ↑c * ↑x + k2 * ↑b * k3 * ↑x + k2 * k4 * ↑y) := by rw [mul_comm]
+    done
+    -- a = kx
+    -- bc = ky
+    -- gcd a (b * c) = s * a + t * b * c
+    -- gcd a b = k1a + k2b
+    -- gcd a c = k3a + k4c
+    -- gcd a b * gcd a c = (k1a + k2b)(k3a + k4c)
+    -- = k1k3 a^2 + k2k3 ab + k1k4 ac + k2k4 bc
+    -- = k1k3ax * k + k2k3bx * k + k1k4cx * k + k2k4y * k
+
 
 /- Section 7.3 -/
 -- 1.
