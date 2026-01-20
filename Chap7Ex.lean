@@ -562,57 +562,331 @@ theorem Exercise_7_2_17a (a b c : Nat) :
 /- Section 7.3 -/
 -- 1.
 theorem congr_trans {m : Nat} : ∀ {a b c : Int},
-    a ≡ b (MOD m) → b ≡ c (MOD m) → a ≡ c (MOD m) := sorry
+    a ≡ b (MOD m) → b ≡ c (MOD m) → a ≡ c (MOD m) := by
+    intros a b c hab hbc
+    define at hab; obtain c1 hc1 from hab; clear hab
+    define at hbc; obtain c2 hc2 from hbc; clear hbc
+    define; exists c1 + c2
+    calc a - c
+      _ = a - b + b - c := by rw[Int.sub_add_cancel a b]
+      _ = ↑m * c1 + (b - c) := by rw[hc1, Int.add_sub_assoc]
+      _ = ↑m * c1 + ↑m * c2 := by rw[hc2]
+      _ = ↑m * (c1 + c2) := by rw[left_distrib]
+    done
 
 -- 2.
-theorem Theorem_7_3_6_3 {m : Nat} (X : ZMod m) : X + [0]_m = X := sorry
+theorem Theorem_7_3_6_3 {m : Nat} (X : ZMod m) : X + [0]_m = X := by
+    obtain a h from cc_rep X
+    rw [h]
+    rw [add_class]; ring
+    done
 
 -- 3.
 theorem Theorem_7_3_6_4 {m : Nat} (X : ZMod m) :
-    ∃ (Y : ZMod m), X + Y = [0]_m := sorry
+    ∃ (Y : ZMod m), X + Y = [0]_m := by
+    obtain a h1 from cc_rep X
+    rw [h1]
+    exists (cc m (-a))
+    rw [add_class]; ring
+    done
 
 -- 4.
 theorem Exercise_7_3_4a {m : Nat} (Z1 Z2 : ZMod m)
     (h1 : ∀ (X : ZMod m), X + Z1 = X)
-    (h2 : ∀ (X : ZMod m), X + Z2 = X) : Z1 = Z2 := sorry
+    (h2 : ∀ (X : ZMod m), X + Z2 = X) : Z1 = Z2 := by
+    have h3 := by apply h1 Z2
+    have h4 := by apply h2 Z1
+    rw[← h3]
+    nth_rw 1 [← h4]
+    rw [Theorem_7_3_6_1]
+    done
 
 -- 5.
 theorem Exercise_7_3_4b {m : Nat} (X Y1 Y2 : ZMod m)
-    (h1 : X + Y1 = [0]_m) (h2 : X + Y2 = [0]_m) : Y1 = Y2 := sorry
+    (h1 : X + Y1 = [0]_m) (h2 : X + Y2 = [0]_m) : Y1 = Y2 := by
+    obtain a g1 from cc_rep X
+    obtain b1 g2 from cc_rep Y1
+    obtain b2 g3 from cc_rep Y2
+    rw [g1, g2, add_class] at h1
+    rw [g1, g3, add_class] at h2
+    rw [← h2] at h1
+    rw [cc_eq_iff_congr] at h1
+    rw [g2, g3]
+    obtain k g4 from h1
+    rw [cc_eq_iff_congr]; exists k
+    rw [← g4]
+    ring
+    done
 
 -- 6.
 theorem Theorem_7_3_10 (m a : Nat) (b : Int) :
-    ¬(↑(gcd m a) : Int) ∣ b → ¬∃ (x : Int), a * x ≡ b (MOD m) := sorry
+    ¬(↑(gcd m a) : Int) ∣ b → ¬∃ (x : Int), a * x ≡ b (MOD m) := by
+    contrapos
+    intros h1; obtain x h2 from h1; clear h1
+    obtain k h1 from h2; clear h2
+    have h2 := by apply gcd_dvd_left m a
+    obtain k1 hk1 from h2; clear h2
+    have h3 := by apply gcd_dvd_right m a
+    obtain k2 hk2 from h3; clear h3
+    rw [hk1] at h1
+    nth_rw 1 [hk2] at h1
+    -- k2 * x - k1 * k
+    exists ↑k2 * x - ↑k1 * k
+    ring
+    simp at h1
+    linarith
+    done
 
 -- 7.
 theorem Theorem_7_3_11 (m n : Nat) (a b : Int) (h1 : n ≠ 0) :
-    n * a ≡ n * b (MOD n * m) ↔ a ≡ b (MOD m) := sorry
+    n * a ≡ n * b (MOD n * m) ↔ a ≡ b (MOD m) := by
+    apply Iff.intro
+    · --↑n * a ≡ ↑n * b (MOD n * m) → a ≡ b (MOD m)
+      intros h2
+      define at h2; obtain x h3 from h2; clear h2
+      define; exists x
+      simp at h3
+      rw [← mul_sub_left_distrib, mul_assoc] at h3
+      #check Int.mul_ediv_cancel_left
+      rw [← Int.natCast_ne_zero] at h1
+      calc a - b
+        _ = ↑n * (a - b) / ↑n := by rw [Int.mul_ediv_cancel_left (a - b) h1]
+        _ = ↑n * (↑m * x) / ↑n := by rw[h3]
+        _ = ↑m * x := by rw[Int.mul_ediv_cancel_left (↑m * x) h1]
+      done
+    · --a ≡ b (MOD m) → ↑n * a ≡ ↑n * b (MOD n * m)
+      intros h2; define at h2
+      obtain x h3 from h2; clear h2
+      exists x
+      rw [← mul_sub_left_distrib, h3, ← mul_assoc, Nat.cast_mul]
+      done
 
 -- 8.
 theorem Exercise_7_3_16 {m : Nat} {a b : Int} (h : a ≡ b (MOD m)) :
-    ∀ (n : Nat), a ^ n ≡ b ^ n (MOD m) := sorry
+    ∀ (n : Nat), a ^ n ≡ b ^ n (MOD m) := by
+    define at h; obtain k h1 from h; clear h
+    by_strong_induc
+    intros n ih
+    · by_cases g1: n = 0
+      · -- n = 0
+        rw[g1]; exists 0; ring
+      · by_cases g2: n = 1
+        · -- n = 1
+          rw[g2]; exists k; ring; apply h1
+        · -- n > 1
+          have g3 : n - 1 < n := by apply Nat.sub_one_lt g1
+          have ih1 := by apply ih (n - 1) g3
+          have g4: 0 < n := by linarith
+          have g5: 1 ≤ n := by linarith
+          have h2: n - 2 < n := by
+            calc n - 2
+              _ = n - (1 + 1) := by ring
+              _ = n - 1 - 1 := by apply Nat.sub_add_eq
+              _ < n - 1 := by
+                apply Nat.sub_one_lt
+                contradict g2 with tmp
+                calc n = n - 1 + 1 := by rw[Nat.sub_add_cancel g5]
+                    _ = 0 + 1 := by rw[tmp]
+                    _ = 1 := by ring
+              _ < n := by linarith
+          have ih2 := by apply ih (n - 2) h2
+          obtain x h3 from ih1; clear ih1
+          obtain y h4 from ih2; clear ih2
+          -- mx(a+b) - myab
+          exists x * (a + b) - y * a * b
+          symm
+          rw [mul_sub_left_distrib, ← mul_assoc, ← mul_assoc, ← mul_assoc, ← h3, ← h4]; ring
+          nth_rw 1 [← Int.pow_one a]
+          nth_rw 3 [← Int.pow_one a]
+          nth_rw 2 [← Int.pow_one b]
+          nth_rw 6 [← Int.pow_one b]
+          nth_rw 2 [mul_assoc]
+          rw [← Int.pow_add, ← Int.pow_add, ← Int.pow_add, ← Int.pow_add]
+          have h5: 1 + (n - 1) = n := by
+            rw [← Nat.add_sub_assoc g5 1]
+            rw [add_comm, Nat.add_sub_cancel]
+          have t1: 1 < n := by
+            apply Nat.lt_of_le_of_ne g5
+            contradict g2 with t2
+            rw [t2]
+          have tmp : 2 ≤ n := by apply Nat.add_one_le_of_lt t1
+          have h6: 1 + (n - 2) = n - 1 := by
+            rw [← Nat.add_sub_assoc tmp 1]
+            rw [add_comm]
+            calc n + 1 - 2
+              _ = n + 1 - (1 + 1) := by ring
+              _ = n + 1 - 1 - 1 := by rw[← Nat.sub_add_eq]
+              _ = n - 1 := by rw[Nat.add_sub_cancel]
+          rw [h5, h6]; ring
+    done
 
 -- 9.
 example {m : Nat} [NeZero m] (X : ZMod m) :
-    ∃! (a : Int), 0 ≤ a ∧ a < m ∧ X = [a]_m := sorry
+    ∃! (a : Int), 0 ≤ a ∧ a < m ∧ X = [a]_m := by
+    exists_unique
+    · --existence
+      obtain a h1 from cc_rep X
+      exists a % m
+      have h2 := by apply mod_cmpl_res m a
+      apply And.intro h2.left
+      apply And.intro h2.right.left
+      rw [h1]; apply cc_eq_mod m a
+    · --uniqueness
+      intros a1 a2 h1 h2
+      have g1 := h1.right.right
+      have g2 := h2.right.right
+      rw [g1] at g2
+      have g3 := by apply cc_eq_iff_congr m a1 a2
+      rw [g3] at g2
+      obtain k g4 from g2; clear g2
+      have g5: a1 - a2 < m * 1 := by linarith
+      have g6 : m * (-1) < a1 - a2 := by linarith
+      rw [g4] at g5
+      rw [g4] at g6
+      have g7: (↑m: Int) ≥ 0 := Nat.cast_nonneg m
+      have g8 : k < 1 := lt_of_mul_lt_mul_of_nonneg_left g5 g7
+      have g9 : -1 < k := lt_of_mul_lt_mul_of_nonneg_left g6 g7
+      have g10 : k = 0 := by linarith
+      rw [g10] at g4
+      calc a1
+        _ = a1 - a2 + a2 := by ring
+        _ = ↑m * 0 + a2 := by rw[g4]
+        _ = a2 := by ring
+      done
 
 -- 10.
 theorem congr_rel_prime {m a b : Nat} (h1 : a ≡ b (MOD m)) :
-    rel_prime m a ↔ rel_prime m b := sorry
+    rel_prime m a ↔ rel_prime m b := by
+    apply Iff.intro
+    · --rel_prime m a → rel_prime m b
+      intros h2
+      rw [Exercise_7_2_6] at h2
+      obtain s tmp from h2; clear h2
+      obtain t h2 from tmp; clear tmp
+      obtain k h3 from h1; clear h1
+      rw [Exercise_7_2_6]
+      exists s + t * k
+      exists t
+      rw [← h2]
+      have h4: a = m * k + b := by
+        calc ↑a
+          _ = (↑a: Int) - b + b := by rw [sub_add_cancel]
+          _ = ↑m * k + b := by rw[h3]
+        done
+      rw [h4]; ring
+    · --rel_prime m b → rel_prime m a
+      intros h2
+      rw [Exercise_7_2_6] at h2
+      obtain s tmp from h2; clear h2
+      obtain t h2 from tmp; clear tmp
+      obtain k h3 from h1; clear h1
+      rw [Exercise_7_2_6]
+      -- sm + tb = sm + t(a - mk) = 1
+      -- (s-tk)m + ta = 1
+      exists s - t * k
+      exists t
+      rw [← h2]
+      have h4: a = m * k + b := by
+        calc ↑a
+          _ = (↑a: Int) - b + b := by rw [sub_add_cancel]
+          _ = ↑m * k + b := by rw[h3]
+        done
+      rw [h4]; ring
+    done
 
 -- 11.
 --Hint: You may find the theorem Int.ofNat_mod_ofNat useful.
 theorem rel_prime_mod (m a : Nat) :
-    rel_prime m (a % m) ↔ rel_prime m a := sorry
+    rel_prime m (a % m) ↔ rel_prime m a := by
+    apply Iff.intro
+    #check Int.ofNat_mod_ofNat
+    -- ∀ (m n : ℕ), ↑m % ↑n = ↑(m % n)
+    · --rel_prime m (a % m) → rel_prime m a
+      intros h1
+      rw [Exercise_7_2_6] at h1
+      obtain s t1 from h1; clear h1
+      obtain t h1 from t1; clear t1
+      rw [Exercise_7_2_6]
+      -- s * m + t * (a%m) = 1
+      -- s * m + t * (a - a/m * m) = 1
+      -- (s - t * a/m) * m + t * a = 1
+      set q := a / m
+      exists s - t * q
+      exists t
+      have h2:  m * q + a % m = a := Nat.div_add_mod a m
+      #check Nat.cast_div
+      have h3: (↑a: Int) - m * q = ↑(a % m) := by
+        calc (↑a: Int) - m * q
+          _ = ↑(m * q + a % m) - m * q := by nth_rw 1 [← h2]
+          _ = ↑(a % m) + m * q - m * q := by rw[add_comm, Nat.cast_add, Nat.cast_mul]
+          _ = a % m := by rw[Int.add_sub_cancel ↑(a % m) (↑m * ↑q), Int.ofNat_mod_ofNat]
+      rw [← h1, ← h3]
+      ring
+    · --rel_prime m a → rel_prime m (a % m)
+      intros h1
+      rw [Exercise_7_2_6] at h1
+      obtain s t1 from h1; clear h1
+      obtain t h1 from t1; clear t1
+      rw [Exercise_7_2_6]
+      -- sm + ta = sm + t(qm + a%m) = (s+tq)m + t*a%m = 1
+      set q := a / m
+      exists s + t * q
+      exists t
+      have h2:  m * q + a % m = a := Nat.div_add_mod a m
+      rw [← h1]; nth_rw 2 [← h2]
+      ring
+      rw [Nat.cast_add, left_distrib, ←add_assoc, Nat.cast_mul]
+      nth_rw 7 [mul_comm]
+      rw [mul_assoc]
+    done
 
 -- 12.
 lemma congr_iff_mod_eq_Int (m : Nat) (a b : Int) [NeZero m] :
-    a ≡ b (MOD m) ↔ a % ↑m = b % ↑m := sorry
-
+    a ≡ b (MOD m) ↔ a % ↑m = b % ↑m := by
+    apply Iff.intro
+    · --a ≡ b (MOD m) → a % ↑m = b % ↑m
+      intros h1
+      have h2 := by apply congr_mod_mod m a
+      have h3 := by apply congr_mod_mod m b
+      have h4: a ≡ b % m (MOD m) := by
+        apply congr_trans h1 h3
+      -- Theorem_7_3_1 shows the uniqueness of r
+      have h := by apply Theorem_7_3_1 m a
+      define at h
+      obtain r hr from h; clear h
+      have h5 := hr.right; clear hr
+      have g1 := by apply mod_cmpl_res m a
+      have g2 := by apply mod_cmpl_res m b
+      have g3 := by
+        apply h5 (a % m)
+        apply And.intro g1.left
+        apply And.intro g1.right.left h2
+      have g4 := by
+        apply h5 (b % m)
+        apply And.intro g2.left
+        apply And.intro g2.right.left h4
+      rw [g3, g4]
+    · --a % ↑m = b % ↑m → a ≡ b (MOD m)
+      intros h1
+      have h2 := by apply Int.mul_ediv_add_emod a m
+      have h3 := by apply Int.mul_ediv_add_emod b m
+      set q1 := a / m
+      set q2 := b / m
+      exists q1 - q2
+      rw[← h2, ← h3, h1]
+      ring
+    done
 --Hint for next theorem: Use the lemma above,
 --together with the theorems Int.ofNat_mod_ofNat and Nat.cast_inj.
 theorem congr_iff_mod_eq_Nat (m a b : Nat) [NeZero m] :
-    ↑a ≡ ↑b (MOD m) ↔ a % m = b % m := sorry
+    ↑a ≡ ↑b (MOD m) ↔ a % m = b % m := by
+    apply Iff.intro
+    · --↑a ≡ ↑b (MOD m) → a % m = b % m
+      intros h1
+      #check Int.ofNat_mod_ofNat
+      #check Nat.cast_inj
+      sorry
+    sorry
 
 /- Section 7.4 -/
 -- 1.

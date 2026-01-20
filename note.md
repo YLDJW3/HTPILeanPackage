@@ -135,3 +135,92 @@
 ## 6.4 Strong induction
 1. **Division algorithm**: For all natural numbers n and m, if m > 0 then there are natural numbers q and r such that n = qm + r and r < m
 2. **Well-ordering principle**: Every **nonempty** set of natural numbers has a **smallest** element
+# Ch7 Number theory
+## 7.1 Greatest Common Divisor
+1. gcd recursive definition
+```lean
+def gcd (a b : Nat) : Nat :=
+  match b with
+    | 0 => a
+    | n + 1 =>
+      have : a % (n + 1) < n + 1 := mod_succ_lt a n
+      gcd (n + 1) (a % (n + 1))
+  termination_by b
+```
+2. gcd_dvd
+```lean
+theorem gcd_dvd : ∀ (b a : Nat), (gcd a b) ∣ a ∧ (gcd a b) ∣ b
+```
+3. gcd_lin_comb
+```lean
+theorem gcd_lin_comb : ∀ (b a : Nat),
+    (gcd_c1 a b) * ↑a + (gcd_c2 a b) * ↑b = ↑(gcd a b)
+```
+## 7.2 Prime Factorization
+1. prime
+```lean
+def prime (n : Nat) : Prop :=
+  2 ≤ n ∧ ¬∃ (a b : Nat), a * b = n ∧ a < n ∧ b < n
+
+def prime_factor (p n : Nat) : Prop := prime p ∧ p ∣ n
+```
+2. exists_prime_factor
+```lean
+lemma exists_prime_factor : ∀ (n : Nat), 2 ≤ n →
+    ∃ (p : Nat), prime_factor p n
+```
+3. prime factorization
+```lean
+def prime_factorization (n : Nat) (l : List Nat) : Prop :=
+  nondec_prime_list l ∧ prod l = n
+```
+4. every positive integer has a prime factorization
+```lean
+lemma exists_prime_factorization : ∀ (n : Nat), n ≥ 1 →
+    ∃ (l : List Nat), prime_factorization n l
+```
+5. prime factorization uniqueness
+```lean
+theorem Theorem_7_2_5 : ∀ (l1 l2 : List Nat),
+    nondec_prime_list l1 → nondec_prime_list l2 →
+    prod l1 = prod l2 → l1 = l2
+```
+6. **fundamental theorem of arithmetic**
+```lean
+theorem fund_thm_arith (n : Nat) (h : n ≥ 1) :
+    ∃! (l : List Nat), prime_factorization n l
+```
+7. relatively prime
+```lean
+def rel_prime (a b : Nat) : Prop := gcd a b = 1
+
+theorem Exercise_7_2_6 (a b : Nat) :
+    rel_prime a b ↔ ∃ (s t : Int), s * a + t * b = 1 := sorry
+```
+## 7.3 Modular
+1. congruence classes
+```lean
+theorem cc_rep {m : Nat} (X : ZMod m) : ∃ (a : Int), X = [a]_m
+
+theorem cc_eq_iff_congr (m : Nat) (a b : Int) :
+    [a]_m = [b]_m ↔ a ≡ b (MOD m)
+
+theorem add_class (m : Nat) (a b : Int) :
+    [a]_m + [b]_m = [a + b]_m
+
+theorem mul_class (m : Nat) (a b : Int) :
+    [a]_m * [b]_m = [a * b]_m
+```
+2. uniqueness of remainder
+```lean
+theorem Theorem_7_3_1 (m : Nat) [NeZero m] (a : Int) :
+    ∃! (r : Int), 0 ≤ r ∧ r < m ∧ a ≡ r (MOD m)
+```
+3. congruence class invertibility
+```lean
+def invertible {m : Nat} (X : ZMod m) : Prop :=
+  ∃ (Y : ZMod m), X * Y = [1]_m
+
+theorem Theorem_7_3_7 (m a : Nat) :
+    invertible [a]_m ↔ rel_prime m a
+```
