@@ -265,3 +265,18 @@ lemma Exercise_7_4_5_Nat (m a n : Nat) :
     [a]_m ^ n = [a ^ n]_m
 ```
 ## 7.5 Public-Key Cryptography
+1. basic of RSA public-key cryptography system
+```lean
+lemma Lemma_7_4_5 {m n : Nat} (a b : Int) (h1 : rel_prime m n) :
+    a ≡ b (MOD m * n) ↔ a ≡ b (MOD m) ∧ a ≡ b (MOD n)
+
+lemma Lemma_7_5_1 {p e d m c s : Nat} {t : Int}
+    (h1 : prime p) (h2 : e * d = (p - 1) * s + 1)
+    (h3 : m ^ e - c = p * t) :
+    c ^ d ≡ m (MOD p)
+
+theorem Theorem_7_5_1 (p q n e d k m c : Nat)
+    (p_prime : prime p) (q_prime : prime q) (p_ne_q : p ≠ q)
+    (n_pq : n = p * q) (ed_congr_1 : e * d = k * (p - 1) * (q - 1) + 1)
+    (h1 : [m]_n ^ e = [c]_n) : [c]_n ^ d = [m]_n
+```

@@ -883,10 +883,15 @@ theorem congr_iff_mod_eq_Nat (m a b : Nat) [NeZero m] :
     apply Iff.intro
     · --↑a ≡ ↑b (MOD m) → a % m = b % m
       intros h1
-      #check Int.ofNat_mod_ofNat
-      #check Nat.cast_inj
-      sorry
-    sorry
+      rw [congr_iff_mod_eq_Int] at h1
+      rw [Int.ofNat_mod_ofNat, Int.ofNat_mod_ofNat, Nat.cast_inj] at h1
+      apply h1
+    · --a % m = b % m → ↑a ≡ ↑b (MOD m)
+      intros h1
+      rw [congr_iff_mod_eq_Int]
+      rw[Int.ofNat_mod_ofNat, Int.ofNat_mod_ofNat, Nat.cast_inj]
+      apply h1
+      done
 
 /- Section 7.4 -/
 -- 1.
@@ -1165,15 +1170,43 @@ lemma three_prime : prime 3 := by
 -- 3.
 --Hint:  Use the previous exercise, Exercise_7_2_7, and Theorem_7_4_2.
 theorem Exercise_7_5_13a (a : Nat) (h1 : rel_prime 561 a) :
-    a ^ 560 ≡ 1 (MOD 3) := sorry
+    a ^ 560 ≡ 1 (MOD 3) := by
+    rw [← cc_eq_iff_congr]
+    have g1 : 3 ∣ 561 := by decide
+    have g2 : a ∣ a := by
+      exists 1; ring
+    have h2: rel_prime 3 a := by
+      apply Exercise_7_2_7 h1 g1 g2
+    have h3 : phi 3 = 2 := by apply phi_prime three_prime
+    calc [a ^ 560]_3
+      _ = [a]_3 ^ 560 := by rw[Exercise_7_4_5_Int 3 a 560]
+      _ = [a]_3 ^ (2 * 280) := by ring
+      _ = ([a]_3 ^ 2) ^ 280 := by rw[pow_mul]
+      _ = ([a]_3 ^ (phi 3)) ^ 280 := by rw [h3]
+      _ = [1]_3 ^ 280 := by rw [Theorem_7_4_2 h2]
+      _ = [1 ^ 280]_3 := by rw[Exercise_7_4_5_Int]
+      _ = [1]_3 := by ring
+    done
 
 -- 4.
 --Hint:  Imitate the way Theorem_7_2_2_Int was proven from Theorem_7_2_2.
 lemma Theorem_7_2_3_Int {p : Nat} {a b : Int}
-    (h1 : prime p) (h2 : ↑p ∣ a * b) : ↑p ∣ a ∨ ↑p ∣ b := sorry
+    (h1 : prime p) (h2 : ↑p ∣ a * b) : ↑p ∣ a ∨ ↑p ∣ b := by
+    #check Theorem_7_2_3
+    rw [Int.natCast_dvd, Int.natAbs_mul] at h2
+    rw[Int.natCast_dvd, Int.natCast_dvd]
+    apply Theorem_7_2_3 h1 at h2
+    apply h2
+    done
 
 -- 5.
 --Hint:  Use the previous exercise.
 theorem Exercise_7_5_14b (n : Nat) (b : Int)
     (h1 : prime n) (h2 : b ^ 2 ≡ 1 (MOD n)) :
-    b ≡ 1 (MOD n) ∨ b ≡ -1 (MOD n) := sorry
+    b ≡ 1 (MOD n) ∨ b ≡ -1 (MOD n) := by
+    apply Theorem_7_2_3_Int h1
+    ring; rw [add_comm]
+    define at h2
+    obtain x h3 from h2; clear h2
+    exists x
+    done
