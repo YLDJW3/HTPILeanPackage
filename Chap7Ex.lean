@@ -1083,10 +1083,84 @@ theorem Like_Exercise_7_4_12 {m a p q k : Nat} [NeZero m]
 -- 1.
 --Hint:  Use induction.
 lemma num_rp_prime {p : Nat} (h1 : prime p) :
-    ∀ k < p, num_rp_below p (k + 1) = k := sorry
+    ∀ k < p, num_rp_below p (k + 1) = k := by
+    by_induc
+    · --k = 0
+      intros h2
+      have h3: ¬rel_prime p 0 := by
+        define; rw [gcd]
+        have g1 := h1.left
+        linarith
+      rw [num_rp_below_step_not_rp h3]
+      apply num_rp_below_base
+    · --induction case
+      intros k h2 h3
+      have h4: rel_prime p (k + 1) := by
+        apply rel_prime_symm
+        apply rel_prime_of_prime_not_dvd h1
+        by_contra contra
+        obtain x gx from contra
+        rw[gx] at h3
+        nth_rw 2 [← mul_one p] at h3
+        have g1: 0 ≤ p := by linarith
+        #check lt_of_mul_lt_mul_left
+        have hx: x < 1 := by apply lt_of_mul_lt_mul_left h3 g1
+        have hxzero : x = 0 := by linarith
+        rw [hxzero, mul_zero] at gx
+        linarith
+      rw [num_rp_below_step_rp h4, h2]
+      linarith
+    done
 
 -- 2.
-lemma three_prime : prime 3 := sorry
+lemma three_prime : prime 3 := by
+    apply And.intro
+    · -- 2 ≤ 3
+      linarith
+    · -- ¬∃ (a : ℕ) (b : ℕ), a * b = 3 ∧ a < 3 ∧ b < 3
+      by_contra h1
+      obtain a tmp from h1
+      obtain b h2 from tmp
+      clear h1; clear tmp
+      by_cases azero: a = 0
+      · -- a = 0
+        have h1 := h2.left
+        rw [azero] at h1
+        linarith
+      · by_cases aone: a = 1
+        -- a = 1
+        have h1 := h2.left
+        rw [aone] at h1
+        have h3: b = 3 := by linarith
+        linarith
+        · by_cases atwo: a = 2
+          -- a = 2
+          have h1 := h2.left
+          rw [atwo] at h1
+          by_cases bzero: b = 0
+          · -- b = 0
+            rw [bzero] at h1; linarith
+          · by_cases bone: b = 1
+            · --b = 1
+              rw [bone] at h1
+              linarith
+            · --b > 1
+              have h3: b >= 2 := by linarith
+              linarith
+          · -- a > 2
+            have h1 := h2.left
+            have h3: a ≥ 1 := by apply pos_of_ne_zero azero
+            have h4 : a > 1 := by
+              apply lt_of_le_of_ne h3
+              rw [ne_comm]
+              apply aone
+            have h5: 2 ≤ a := by apply Nat.add_one_le_of_lt h4
+            have h6: a > 2 := by
+              apply lt_of_le_of_ne h5
+              rw [ne_comm]
+              apply atwo
+            linarith
+      done
 
 -- 3.
 --Hint:  Use the previous exercise, Exercise_7_2_7, and Theorem_7_4_2.

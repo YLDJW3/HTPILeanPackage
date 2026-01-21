@@ -256,3 +256,12 @@ theorem Theorem_7_4_2 {m a : Nat} [NeZero m] (h1 : rel_prime m a) :
     
     prod_seq m 0 (F m) -- denotes the F product
     ```
+4. power of congruence class
+```lean
+lemma Exercise_7_4_5_Int (m : Nat) (a : Int) :
+    ∀ (n : Nat), [a]_m ^ n = [a ^ n]_m
+
+lemma Exercise_7_4_5_Nat (m a n : Nat) :
+    [a]_m ^ n = [a ^ n]_m
+```
+## 7.5 Public-Key Cryptography
