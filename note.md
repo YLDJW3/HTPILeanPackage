@@ -224,3 +224,35 @@ def invertible {m : Nat} (X : ZMod m) : Prop :=
 theorem Theorem_7_3_7 (m a : Nat) :
     invertible [a]_m ↔ rel_prime m a
 ```
+## 7.4 Euler theorem
+1. **Euler’s totient function** $\phi (m)$
+    1. defines to be the number of $\Z /\equiv m$ elements of that have multiplicative inverses
+    2. $\phi (m)$ is also equal to the number of natural numbers $a < m$ that are relatively prime to $m$
+    ```lean
+    def num_rp_below (m k : Nat) : Nat :=
+        match k with
+            | 0 => 0
+            | j + 1 => if gcd m j = 1 then (num_rp_below m j) + 1
+                        else num_rp_below m j
+    def phi (m: Nat) : Nat :=
+        num_rp_below m m
+    ```
+2. Euler's theorem
+```lean
+theorem Theorem_7_4_2 {m a : Nat} [NeZero m] (h1 : rel_prime m a) :
+    [a]_m ^ (phi m) = [1]_m
+```
+3. F product
+    1. F-product = (F m 0) * (F m 1) * ... * (F m (m - 1))
+    2. the product is equal to the product of all congruence classes `[i]_m` with m and i **relatively prime**
+    3. that is the product of all **invertible congruence classes**
+    ```lean
+    def F (m i : Nat) : ZMod m := if gcd m i = 1 then [i]_m else [1]_m
+
+    def prod_seq {m : Nat} (j k : Nat) (f : Nat → ZMod m) : ZMod m :=
+        match j with
+            | 0 => [1]_m
+            | n + 1 => prod_seq n k f * f (k + n)
+    
+    prod_seq m 0 (F m) -- denotes the F product
+    ```

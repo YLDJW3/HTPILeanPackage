@@ -895,38 +895,189 @@ theorem congr_iff_mod_eq_Nat (m a b : Nat) [NeZero m] :
 --by Theorem_7_3_6_7, [a] ^ 0 * [1]_m = [a]_m ^ 0
 --by ring, [a]_m ^ 0 * [1]_m = [1]_m.
 lemma Exercise_7_4_5_Int (m : Nat) (a : Int) :
-    ∀ (n : Nat), [a]_m ^ n = [a ^ n]_m := sorry
+    ∀ (n : Nat), [a]_m ^ n = [a ^ n]_m := by
+    by_induc
+    · -- base case, n = 0
+      have h1: [a]_m ^ 0 * [1]_m = [a]_m ^ 0 := by
+        apply Theorem_7_3_6_7
+      have h2: [a]_m ^ 0 * [1]_m = [a ^ 0]_m := by
+        ring
+      rw[← h1, ← h2]
+    · -- induction case
+      intros n h1
+      calc [a]_m ^ (n + 1)
+        _ = [a]_m ^ n * [a]_m := by ring
+        _ = [a ^ n]_m * [a]_m := by rw[h1]
+        _ = [a ^ n * a]_m := by apply mul_class
+        _ = [a ^ (n + 1)]_m := by ring
+      done
 
 -- 2.
 lemma left_inv_one_one_below {n : Nat} {g g' : Nat → Nat}
-    (h1 : ∀ i < n, g' (g i) = i) : one_one_below n g := sorry
+    (h1 : ∀ i < n, g' (g i) = i) : one_one_below n g := by
+  define
+  intros i hi j hj heq
+  have h2 := by apply h1 i hi
+  have h3 := by apply h1 j hj
+  rw [← h2, ← h3, heq]
+  done
 
 -- 3.
 lemma comp_perm_below {n : Nat} {f g : Nat → Nat}
     (h1 : perm_below n f) (h2 : perm_below n g) :
-    perm_below n (f ∘ g) := sorry
+    perm_below n (f ∘ g) := by
+    define; define at h1; define at h2
+    apply And.intro
+    · --maps_below n (f ∘ g)
+      define; intros i h3
+      apply h1.left
+      apply h2.left
+      apply h3
+    · apply And.intro
+      · --one_one_below n (f ∘ g)
+        define; intros i hi j hj heq
+        apply h1.right.left at heq
+        apply h2.right.left at heq
+        apply heq
+        apply hi; apply hj
+        apply h2.left
+        apply hi
+        apply h2.left; apply hj
+      · --onto_below n (f ∘ g)
+        define; intros k hk
+        apply h1.right.right at hk
+        obtain x hx from hk; clear hk
+        have hxn := hx.left
+        apply h2.right.right at hxn
+        obtain y hy from hxn; clear hxn
+        exists y
+        apply And.intro hy.left
+        rw [comp_def, hy.right]
+        apply hx.right
+      done
 
 -- 4.
 lemma perm_below_fixed {n : Nat} {g : Nat → Nat}
-    (h1 : perm_below (n + 1) g) (h2 : g n = n) : perm_below n g := sorry
+    (h1 : perm_below (n + 1) g) (h2 : g n = n) : perm_below n g := by
+    define at h1; define
+    have g1 := h1.left; define at g1
+    have g2 := h1.right.left; define at g2
+    have g3 := h1.right.right; define at g3
+    clear h1
+    apply And.intro
+    · --maps_below n g
+      define; intros i hi
+      have gi: i < n + 1 := by linarith
+      apply g1 at gi
+      have gne: g i ≠ n := by
+        by_contra g4
+        rw [← h2] at g4
+        apply g2 at g4
+        linarith -- i < n contradict with i = n
+        linarith; linarith
+      have g4: g i ≤ n := by linarith
+      apply Nat.lt_of_le_of_ne g4 gne
+    · apply And.intro
+      · --one_one_below n g
+        define; intros i hi j hj heq
+        apply g2
+        linarith; linarith
+        apply heq
+      · --onto_below n g
+        define; intros j hj
+        have gj : j < n + 1 := by linarith
+        apply g3 at gj
+        obtain i gi from gj
+        have hne: i ≠ n := by
+          by_contra g4
+          rw[g4] at gi
+          rw[gi.right] at h2
+          linarith
+        have g4: i ≤ n := by linarith
+        have g5: i < n := by
+          apply Nat.lt_of_le_of_ne g4 hne
+        exists i
+        apply And.intro g5 gi.right
+      done
 
 -- 5.
 lemma Lemma_7_4_6 {a b c : Nat} :
-    rel_prime (a * b) c ↔ rel_prime a c ∧ rel_prime b c := sorry
+    rel_prime (a * b) c ↔ rel_prime a c ∧ rel_prime b c := by
+    apply Iff.intro
+    · --rel_prime (a * b) c → rel_prime a c ∧ rel_prime b c
+      intros h1
+      rw [Exercise_7_2_6] at h1
+      obtain s t1 from h1
+      obtain t h2 from t1
+      clear h1; clear t1
+      apply And.intro
+      · --rel_prime a c
+        rw [Exercise_7_2_6]
+        exists s * b
+        exists t
+        rw [← h2, mul_comm a b, Nat.cast_mul, ← mul_assoc]
+      · --rel_prime b c
+        rw [Exercise_7_2_6]
+        exists s * a
+        exists t
+        rw [← h2, Nat.cast_mul, ← mul_assoc]
+      done
+    · --rel_prime a c ∧ rel_prime b c → rel_prime (a * b) c
+      intros h1
+      have h2 := h1.left; rw [Exercise_7_2_6] at h2
+      have h3 := h1.right; rw [Exercise_7_2_6] at h3
+      clear h1
+      obtain s1 tmp from h2;
+      obtain t1 h1 from tmp;
+      clear tmp; clear h2
+      obtain s2 tmp from h3;
+      obtain t2 h2 from tmp;
+      clear tmp; clear h3
+      rw [Exercise_7_2_6]
+      -- (s1 a + t1 c)(s2 b + t2 c) = 1
+      -- s1s2 a b + (s1 a t2 + t1 s2 b + t1 t2) c = 1
+      exists s1 * s2
+      exists s1 * a * t2 + t1 * s2 * b + t1 * t2 * c
+      have h3 : (s1 * ↑a + t1 * ↑c) * (s2 * ↑b + t2 * ↑c) = 1 := by
+        rw [h1, h2]; ring
+      rw [← h3]; ring
+      rw [Nat.cast_mul, ← mul_assoc]
+    done
 
 -- 6.
 example {m a : Nat} [NeZero m] (h1 : rel_prime m a) :
-    a ^ (phi m + 1) ≡ a (MOD m) := sorry
+    a ^ (phi m + 1) ≡ a (MOD m) := by
+    have h2 := by apply Euler's_theorem h1
+    obtain k h3 from h2; clear h2
+    define; exists a * k
+    have h2: a ^ phi m = m * k + 1 := by linarith
+    ring; rw [h2]; ring
+    done
 
 -- 7.
 theorem Like_Exercise_7_4_11 {m a p : Nat} [NeZero m]
     (h1 : rel_prime m a) (h2 : p + 1 = phi m) :
-    [a]_m * [a ^ p]_m = [1]_m := sorry
+    [a]_m * [a ^ p]_m = [1]_m := by
+    rw [mul_class]
+    have h3: (↑a: Int) * ↑a ^ p = a ^ phi m := by
+      nth_rw 1 [← pow_one a, Nat.cast_pow]
+      rw [← pow_add, add_comm, h2]
+    rw [h3]
+    rw [← Exercise_7_4_5_Int m a (phi m)]
+    apply Theorem_7_4_2 h1
+    done
 
 -- 8.
 theorem Like_Exercise_7_4_12 {m a p q k : Nat} [NeZero m]
     (h1 : rel_prime m a) (h2 : p = q + (phi m) * k) :
-    a ^ p ≡ a ^ q (MOD m) := sorry
+    a ^ p ≡ a ^ q (MOD m) := by
+    have h3 := by apply Euler's_theorem h1
+    rw [← cc_eq_iff_congr]
+    rw [← cc_eq_iff_congr] at h3
+    rw [h2, pow_add, ← mul_class, pow_mul, ← Exercise_7_4_5_Int m _ k]
+    rw [h3, Exercise_7_4_5_Int]; ring
+    rw [mul_class]; ring
+    done
 
 /- Section 7.5 -/
 -- 1.
