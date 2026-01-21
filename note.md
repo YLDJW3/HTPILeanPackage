@@ -265,7 +265,18 @@ lemma Exercise_7_4_5_Nat (m a n : Nat) :
     [a]_m ^ n = [a ^ n]_m
 ```
 ## 7.5 Public-Key Cryptography
-1. basic of RSA public-key cryptography system
+1. RSA: Alice wants to send a message to Bob
+    1. B chooses **two distinct prime number `p` and `q`**. Compute n = pq and $\phi (n)=(p - 1)(q - 1)$
+    2. B chooses a positive integer `e` such that e and $\phi (n)$ are **relatively prime** and $e < \phi (n)$
+    3. B computes a positive integer `d` such that $d < \phi (n)$ and $[e]_{\phi (n)}\times [d]_{\phi(n)} = [1]_{\phi(n)}$, so $ed \equiv 1(mod\ \phi(n))$
+    4. B sends `(n, e)` to A, and keeps `p, q, d` secret
+    5. The message A wants to send is `m`, and $m < n$
+    6. Encrypt: A computes $[m^e]_n = [c]_n$, the encrypted message sent to B is `c`
+    7. Decrypt: B computes $[c^e]_n = [m]_n$ to recover the original message `m`
+2. Security
+    1. Attackers can get `n, e, c`, if prime factorization of n is easy, they can solve `p, q, d` 
+    2.  The security of RSA depends on the fact that, in practice, the numbers used are so large that **factoring `n` is not feasible**
+3. Basic of RSA public-key cryptography system
 ```lean
 lemma Lemma_7_4_5 {m n : Nat} (a b : Int) (h1 : rel_prime m n) :
     a ≡ b (MOD m * n) ↔ a ≡ b (MOD m) ∧ a ≡ b (MOD n)
