@@ -291,3 +291,32 @@ theorem Theorem_7_5_1 (p q n e d k m c : Nat)
     (n_pq : n = p * q) (ed_congr_1 : e * d = k * (p - 1) * (q - 1) + 1)
     (h1 : [m]_n ^ e = [c]_n) : [c]_n ^ d = [m]_n
 ```
+# Ch8 Infinite Sets
+## 8.1 Equinumerous Sets
+1. equinumerous
+```lean
+def equinum (U V : Type) : Prop :=  
+  ∃ (f : U → V), one_to_one f ∧ onto f
+
+notation:50 U " ∼ " V => equinum U V
+```
+2. Subtype and coercion
+```lean
+A : Set U
+↑A : Type
+a : ↑A 
+a.val -- get data of type U
+a.property -- get proof of ↑a \in A
+Subtype.mk x h -- get an element of subtype
+```
+3. Function conversion
+```lean
+f : U → V, func_to_range f -- U → range f
+f : U → V, func_restrict f -- A → V
+f : U → B, func_to_type f --U → V
+f : A → V, func_extend f --U → V
+```
+4. Countablility
+    finite
+    denumerable
+    countable

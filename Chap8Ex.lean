@@ -491,38 +491,247 @@ theorem Exercise_8_1_17 {U : Type} {A B : Set U}
 /- Section 8.1½ -/
 -- 1.
 lemma image_empty {U : Type} {A : Set U}
-    (f : U → Nat) (h : empty A) : image f A = I 0 := sorry
+    (f : U → Nat) (h : empty A) : image f A = I 0 := by
+    define at h
+    apply Set.ext
+    intros x; apply Iff.intro
+    · --x ∈ image f A → x ∈ I 0
+      intros h1; define at h1
+      obtain y h2 from h1
+      contradict h; exists y
+      apply h2.left
+    · --x ∈ I 0 → x ∈ image f A
+      intros h1; define at h1
+      linarith
+    done
 
 -- 2.
 lemma remove_one_equinum
     {U V : Type} {A : Set U} {B : Set V} {a : U} {b : V} {f : U → V}
     (h1 : one_one_on f A) (h2 : image f A = B)
-    (h3 : a ∈ A) (h4 : f a = b) : ↑(A \ {a}) ∼ ↑(B \ {b}) := sorry
+    (h3 : a ∈ A) (h4 : f a = b) : ↑(A \ {a}) ∼ ↑(B \ {b}) := by
+
+    have g: range (func_restrict f (A \ {a})) = B \ {b} := by
+      rw [fr_range]
+      apply Set.ext; intros y; apply Iff.intro
+      · intros g1; define at g1
+        obtain x g2 from g1; clear g1
+        apply And.intro
+        rw [Set.ext_iff] at h2
+        have g3 := by apply h2 y
+        rw [← g3]
+        define; exists x
+        have g1 := g2.left; define at g1
+        apply And.intro g1.left g2.right
+        have g3 := g2.left.right; define at g3
+        define; contradict g3 with g4
+        rw [← g2.right, ← h4] at g4
+        apply h1 at g4
+        apply g4
+        apply g2.left.left
+        apply h3
+        done
+      · intros g1; define at g1
+        define
+        rw [Set.ext_iff] at h2
+        have g2 := by apply h2 y
+        have g3 := g1.left
+        rw [← g2] at g3; define at g3
+        obtain x g4 from g3; clear g3
+        exists x
+        apply And.intro _ g4.right
+        apply And.intro g4.left
+        define
+        contradict g1.right with g3
+        define; rw [← h4, ← g4.right, g3]
+        done
+
+    set f' := func_to_range (func_restrict f (A \ {a}))
+    have g1: one_to_one f' := by
+      apply ftr_one_one_of_one_one
+      apply fr_one_one_of_one_one_on
+      define; intros x1 x2 g1 g2 geq
+      apply h1 at geq
+      apply geq
+      apply g1.left
+      apply g2.left
+    have g2: onto f' := by
+      apply ftr_onto
+      done
+    define; rw [← g]
+    exists f'
+    done
 
 -- 3.
 lemma singleton_of_diff_empty {U : Type} {A : Set U} {a : U}
-    (h1 : a ∈ A) (h2 : empty (A \ {a})) : A = {a} := sorry
+    (h1 : a ∈ A) (h2 : empty (A \ {a})) : A = {a} := by
+    define at h2
+    apply Set.ext; intros x; apply Iff.intro
+    · --x ∈ A → x ∈ {a}
+      intros g1
+      contradict h2 with g2
+      exists x
+    · --x ∈ {a} → x ∈ A
+      intros g1; define at g1
+      rw [g1]; apply h1
+    done
 
 -- 4.
-lemma eq_zero_of_I_zero_equinum {n : Nat} (h : I 0 ∼ I n) : n = 0 := sorry
+lemma eq_zero_of_I_zero_equinum {n : Nat} (h : I 0 ∼ I n) : n = 0 := by
+  rw [← numElts_def] at h
+  rw [zero_elts_iff_empty] at h
+  define at h
+  contradict h with h1
+  exists 0
+  have h2: n > 0 := by apply Nat.pos_of_ne_zero h1
+  define
+  apply h2
+  done
 
 -- 5.
 --Hint: use mathematical induction
-theorem Exercise_8_1_6a : ∀ ⦃m n : Nat⦄, (I m ∼ I n) → m = n := sorry
+theorem Exercise_8_1_6a : ∀ ⦃m n : Nat⦄, (I m ∼ I n) → m = n := by
+  by_induc
+  · --base case
+    intros n h1
+    apply eq_zero_of_I_zero_equinum at h1
+    rw [h1]
+  · --induction case
+    intros m h1 n h2
+    by_cases h3: n = 0
+    · -- n = 0
+      rw [h3] at h2
+      apply Theorem_8_1_3_2 at h2
+      apply eq_zero_of_I_zero_equinum at h2
+      rw [h3]
+      apply h2
+    · -- n > 0
+      have h5 := by apply exists_eq_add_one_of_ne_zero h3
+      obtain n' h4 from h5; clear h5
+      rw [h4] at h2
+      rw [h4]
+      have g1: n' < n' + 1 := by linarith
+      have g2 := by apply I_equinum_I_remove_one g1
+      rw [← numElts_def] at h2
+      have g3: n' ∈ I (n' + 1) := by
+        define; apply g1
+      have g4 := by apply remove_one_numElts h2 g3
+      rw [numElts_def] at g4
+      apply Theorem_8_1_3_2 at g2
+      have g5 := by apply Theorem_8_1_3_3 g4 g2
+      apply h1 at g5
+      rw [g5]
+    done
 
 -- 6.
 theorem Exercise_8_1_6b {U : Type} {A : Set U} {m n : Nat}
-    (h1 : numElts A m) (h2 : numElts A n) : m = n := sorry
+    (h1 : numElts A m) (h2 : numElts A n) : m = n := by
+    rw [numElts_def] at h1
+    rw [numElts_def] at h2
+    apply Theorem_8_1_3_2 at h2
+    have h3 := by apply Theorem_8_1_3_3 h1 h2
+    apply Exercise_8_1_6a at h3
+    apply h3
+    done
 
 -- 7.
 lemma neb_nrpb (m : Nat) : ∀ ⦃k : Nat⦄, k ≤ m →
-    num_elts_below (set_rp_below m) k = num_rp_below m k := sorry
+    num_elts_below (set_rp_below m) k = num_rp_below m k := by
+    by_induc
+    · intros h1
+      rfl
+    · intros n h1 h2
+      by_cases h3: rel_prime m n
+      · --rel_prime m n
+        rw [num_rp_below_step_rp h3]
+        have g1: n ∈ set_rp_below m := by
+          define; apply And.intro h3
+          linarith
+        rw [neb_step_elt g1]
+        have g2 : n ≤ m := by linarith
+        apply h1 at g2
+        rw [g2]
+      · --not rel_prime m n
+        rw [num_rp_below_step_not_rp h3]
+        have g2: n ∉ set_rp_below m := by
+          contradict h3 with h4
+          define at h4
+          apply h4.left
+        rw [neb_step_not_elt g2]
+        apply h1
+        linarith
+      done
 
 -- 8.
 --Hint:  You might find it helpful to apply the theorem div_mod_char
+theorem div_mod_char (m n q r : Nat)
+    (h1 : n = m * q + r) (h2 : r < m) : q = n / m ∧ r = n % m := sorry
+
 --from the exercises of Section 6.4.
 lemma qr_image (m n : Nat) :
-    image (qr n) (I (m * n)) = I m ×ₛ I n := sorry
+    image (qr n) (I (m * n)) = I m ×ₛ I n := by
+    apply Set.ext
+    fix (q, r)
+    apply Iff.intro
+    · --(q, r) ∈ image (qr n) (I (m * n)) → (q, r) ∈ I m ×ₛ I n
+      by_cases h : n = 0
+      · -- n = 0
+        rw [h]; ring
+        intros h1
+        define at h1
+        obtain x h2 from h1; clear h1
+        have h3 := h2.left
+        define at h3
+        linarith
+      · -- n > 0
+        intros h1; define at h1; define
+        obtain x h2 from h1; clear h1
+        have h3 := h2.right; unfold qr at h3
+        rw [Prod.eq_iff_fst_eq_snd_eq] at h3
+        have h4 : x / n = q := by linarith
+        have h5 : x % n = r := by linarith
+        clear h3
+        have h3 := h2.left; define at h3
+        apply And.intro
+        · define -- q < m
+          rw [← h4]
+          rw [Nat.div_lt_iff_lt_mul]
+          apply h3
+          apply Nat.pos_of_ne_zero h
+        · define -- r < n
+          rw [← h5]
+          apply Nat.mod_lt
+          apply Nat.pos_of_ne_zero h
+    · --(q, r) ∈ I m ×ₛ I n → (q, r) ∈ image (qr n) (I (m * n))
+      intros h1
+      define at h1
+      have h2 := h1.left; define at h2
+      have h3 := h1.right; define at h3
+      clear h1
+      define
+      exists q * n + r
+      apply And.intro
+      · --q * n + r ∈ I (m * n)
+        define
+        have h1 : m > 0 := by linarith
+        rw [← Nat.le_sub_one_iff_lt h1] at h2
+        have h4: q * n ≤ (m - 1) * n := by
+          apply Nat.mul_le_mul_right n h2
+        have g1 : m ≥ 1 := by linarith
+        calc q * n + r
+          _ ≤ (m - 1) * n + r := by linarith
+          _ < (m - 1) * n + n := by linarith
+          _ = (m - 1) * n + 1 * n := by ring
+          _ = m * n := by rw [← right_distrib, Nat.sub_add_cancel g1]
+        done
+      · --qr n (q * n + r) = (q, r)
+        unfold qr
+        set x := n * q + r
+        have h4: x = n * q + r := by rfl
+        have g1 := by apply div_mod_char n x q r h4 h3
+        rw [h4, mul_comm] at g1
+        rw [← g1.left, ← g1.right]
+      done
 
 -- Definitions for next two exercises
 lemma is_elt_snd_of_not_fst {U : Type} {A C : Set U} {x : U}
@@ -544,51 +753,533 @@ noncomputable def func_union {U V : Type} {A C : Set U}
 lemma func_union_one_one {U V : Type} {A C : Set U}
     {f : A → V} {g : C → V} (h1 : empty (range f ∩ range g))
     (h2 : one_to_one f) (h3 : one_to_one g) :
-    one_to_one (func_union f g) := sorry
+    one_to_one (func_union f g) := by
+    define; intros x1 x2 heq
+    by_cases g1: x1.val ∈ A
+    · by_cases g2: x2.val ∈ A
+      · --x1.val ∈ A and x2.val ∈ A
+        rw [func_union, dif_pos g1, func_union, dif_pos g2] at heq
+        apply h2 at heq
+        rw [Subtype_elt, Subtype_elt] at heq
+        injection heq with hvaleq
+        apply Subtype.ext at hvaleq
+        apply hvaleq
+      · --x1.val ∈ A and x2.val ∉ A
+        rw [func_union, dif_pos g1, func_union, dif_neg g2] at heq
+        contradict h1
+        exists f (Subtype_elt g1)
+        define
+        apply And.intro
+        · define; exists Subtype_elt g1
+        · rw [heq]; define; exists elt_snd_of_not_fst g2
+        done
+    · by_cases g2: x2.val ∈ A
+      · --x1.val ∉ A and x2.val ∈ A
+        rw [func_union, dif_neg g1, func_union, dif_pos g2] at heq
+        contradict h1
+        exists f (Subtype_elt g2)
+        apply And.intro
+        · define; exists Subtype_elt g2
+        · rw [← heq]; define; exists elt_snd_of_not_fst g1
+      · --x1.val ∉ A and x2.val ∉ A
+        rw [func_union, dif_neg g1, func_union, dif_neg g2] at heq
+        apply h3 at heq
+        rw [elt_snd_of_not_fst, elt_snd_of_not_fst, Subtype_elt, Subtype_elt] at heq
+        injection heq with heqval
+        apply Subtype.ext at heqval
+        apply heqval
+    done
 
 -- 10.
 lemma func_union_range {U V : Type} {A C : Set U}
     (f : A → V) (g : C → V) (h : empty (A ∩ C)) :
-    range (func_union f g) = range f ∪ range g := sorry
+    range (func_union f g) = range f ∪ range g := by
+    apply Set.ext; intros y; apply Iff.intro
+    · --y ∈ range (func_union f g) → y ∈ range f ∪ range g
+      intros h1; define at h1; obtain x h2 from h1; clear h1
+      by_cases h1: x.val ∈ A
+      · -- x.val ∈ A
+        rw [func_union, dif_pos h1] at h2
+        apply Or.inl
+        exists Subtype_elt h1
+        done
+      · --x.val ∉ A
+        rw [func_union, dif_neg h1] at h2
+        apply Or.inr
+        exists elt_snd_of_not_fst h1
+    · --y ∈ range f ∪ range g → y ∈ range (func_union f g)
+      intros h1; define at h1
+      by_cases on h1
+      · -- y ∈ range f
+        obtain x h2 from h1
+        have h3: x.val ∈ A ∪ C := by
+          apply Or.inl x.property
+        exists Subtype_elt h3
+        have h4: ↑(Subtype_elt h3) ∈ A := by
+          rw [Subtype_elt]
+          apply x.property
+          done
+        have h5 : Subtype_elt h4 = x := by
+          rfl
+        rw [func_union, dif_pos h4, h5]
+        apply h2
+      · --y ∈ range g
+        obtain x h2 from h1
+        have h3: x.val ∈ A ∪ C := by
+          apply Or.inr x.property
+        exists Subtype_elt h3
+        have h4: ↑(Subtype_elt h3) ∈ C := by
+          rw [Subtype_elt]
+          apply x.property
+          done
+        have h6: ↑(Subtype_elt h3) ∉ A := by
+          contradict h with g1
+          exists Subtype_elt h3
+        have h5 : elt_snd_of_not_fst h6 = x := by
+          rfl
+        rw [func_union, dif_neg h6, h5]
+        apply h2
+    done
 
 -- 11.
 --Hint:  Use the last two exercises.
 theorem Theorem_8_1_2_2
     {U V : Type} {A C : Set U} {B D : Set V}
     (h1 : empty (A ∩ C)) (h2 : empty (B ∩ D))
-    (h3 : A ∼ B) (h4 : C ∼ D) : ↑(A ∪ C) ∼ ↑(B ∪ D) := sorry
+    (h3 : A ∼ B) (h4 : C ∼ D) : ↑(A ∪ C) ∼ ↑(B ∪ D) := by
+    obtain f g1 from h3
+    obtain g g2 from h4
+    define
+    set f': ↑A → ↑(B ∪ D) := fun a => ⟨(f a).val, Or.inl (f a).property⟩
+    set g': ↑C → ↑(B ∪ D) := fun c => ⟨(g c).val, Or.inr (g c).property⟩
+    exists (func_union f' g')
+    apply And.intro
+    · --one_to_one (func_union f' g')
+      apply func_union_one_one
+      · --empty (range f' ∩ range g')
+        define
+        contradict h2 with h5
+        obtain x h6 from h5; clear h5
+        define at h6; have hleft := h6.left; define at hleft
+        obtain a h7 from hleft; clear hleft
+        unfold f' at h7
+        rw [Subtype.mk_eq_mk] at h7
+        have hright := h6.right; define at hright
+        obtain c h8 from hright; clear hright
+        unfold g' at h8
+        rw [Subtype.mk_eq_mk] at h8
+        exists x
+        apply And.intro
+        · rw [← h7]; apply (f a).property
+        · rw [← h8]; apply (g c).property
+        done
+      · --one_to_one f'
+        define; intros x1 x2 heq
+        unfold f' at heq
+        rw [Subtype.mk_eq_mk] at heq
+        apply Subtype.ext at heq
+        apply g1.left at heq
+        apply heq
+      · --one_to_one g'
+        define; intros x1 x2 heq
+        unfold g' at heq
+        rw [Subtype.mk_eq_mk] at heq
+        apply Subtype.ext at heq
+        apply g2.left at heq
+        apply heq
+    · --onto (func_union f' g')
+      have g3 := by apply func_union_range f' g' h1
+      define; fix y
+      by_cases g4: y.val ∈ B
+      · -- y.val ∈ B
+        have g5 := g1.right; define at g5
+        obtain a g6 from g5 (Subtype_elt g4); clear g5
+        exists ⟨a, by apply Or.inl a.property⟩
+        rw [func_union, dif_pos a.property]
+        unfold f'; rw[Subtype_elt]; simp
+        rw [Subtype.mk_eq_mk, g6, Subtype_elt]
+        done
+      · --y.val ∉ B
+        have h5: ↑y ∈ D := by
+          disj_syll y.property g4
+          apply this
+        have g5 := g2.right; define at g5
+        obtain c g6 from g5 (Subtype_elt h5)
+        exists ⟨c, by apply Or.inr c.property⟩
+        have g7: ↑c ∉ A := by
+          contradict h1 with g8
+          exists c
+          apply And.intro g8 c.property
+        rw [func_union, dif_neg g7]
+        unfold g'; unfold elt_snd_of_not_fst
+        rw [Subtype_elt]; simp
+        rw [Subtype.mk_eq_mk, g6]
+        rfl
+    done
 
 -- 12.
-lemma shift_I_equinum (n m : Nat) : I m ∼ ↑(I (n + m) \ I n) := sorry
+lemma shift_I_equinum (n m : Nat) : I m ∼ ↑(I (n + m) \ I n) := by
+  define
+  set f: ↑(I m) → ↑(I (n + m) \ I n) := fun x => ⟨x.val + n, by
+    define; apply And.intro
+    · --↑x + n ∈ I (n + m)
+      define
+      have h1 := x.property; define at h1
+      calc x + n
+        _ < m + n := by linarith
+        _ = n + m := by linarith
+    · --↑x + n ∉ I n
+      define; linarith
+    ⟩
+  exists f
+  apply And.intro
+  · --one_to_one
+    define; intros x1 x2 heq
+    unfold f at heq
+    rw [Subtype.mk_eq_mk] at heq
+    apply Nat.add_right_cancel at heq
+    apply Subtype.ext at heq
+    apply heq
+  · --onto
+    define; intros y
+    have h1 := y.property.right; define at h1
+    apply Nat.ge_of_not_lt at h1
+    apply exists_add_of_le at h1
+    obtain n' h2 from h1; clear h1
+    have h3 := y.property.left; define at h3
+    rw [h2] at h3
+    apply lt_of_add_lt_add_left at h3
+    exists ⟨n', h3⟩
+    unfold f
+    rw [Subtype.mk_eq_mk]; simp
+    rw [h2, add_comm]
+    done
 
 -- 13.
 theorem Theorem_8_1_7 {U : Type} {A B : Set U} {n m : Nat}
     (h1 : empty (A ∩ B)) (h2 : numElts A n) (h3 : numElts B m) :
-    numElts (A ∪ B) (n + m) := sorry
+    numElts (A ∪ B) (n + m) := by
+    rw [numElts_def] at h2
+    rw [numElts_def] at h3
+    rw [numElts_def]
+    have h4 := by apply shift_I_equinum n m
+    have h5: I (n + m) = I n ∪ I (n + m) \ I n := by
+      apply Set.ext; intros x; apply Iff.intro
+      · intros g1; define at g1
+        by_cases g2: x < n
+        · apply Or.inl g2
+        · apply Or.inr
+          define; apply And.intro g1 g2
+      · intros g1
+        by_cases on g1
+        · define; define at g1; linarith
+        · define at g1; apply g1.left
+      done
+    have h6: empty (I n ∩ (I (n + m) \ I n)) := by
+      define; by_contra h6
+      obtain x h7 from h6; clear h6
+      have h8 := h7.right; define at h8
+      contradict h8.right
+      apply h7.left
+      done
+    have h7: ↑(I (n + m) \ I n) ∼ ↑B := by
+      apply Theorem_8_1_3_2 at h4
+      apply Theorem_8_1_3_3 h4 h3
+    rw [h5]
+    apply Theorem_8_1_2_2 h6 h1 h2 h7
+    done
 
 -- 14.
 theorem equinum_sub {U V : Type} {A C : Set U} {B : Set V}
-    (h1 : A ∼ B) (h2 : C ⊆ A) : ∃ (D : Set V), D ⊆ B ∧ C ∼ D := sorry
+    (h1 : A ∼ B) (h2 : C ⊆ A) : ∃ (D : Set V), D ⊆ B ∧ C ∼ D := by
+    obtain f h3 from h1
+    set D := {v: V | ∃(x: ↑A), x.val ∈ C ∧ (f x).val = v}
+    exists D
+    apply And.intro
+    · -- D ⊆ B
+      define; intros y h4
+      define at h4
+      obtain x h5 from h4; clear h4
+      rw [← h5.right]
+      apply (f x).property
+    · -- ↑C ∼ ↑D
+      define
+      set f': ↑C → ↑D := fun x => ⟨(f ⟨x, by apply h2 x.property⟩).val, by
+        define
+        exists ⟨x, by apply h2 x.property⟩
+        apply And.intro
+        · apply x.property
+        · rfl
+        ⟩
+      exists f'
+      apply And.intro
+      · --one_to_one f'
+        define; intros x1 x2 heq
+        unfold f' at heq; simp at heq
+        apply Subtype.ext at heq
+        apply h3.left at heq
+        rw [Subtype.mk_eq_mk] at heq
+        apply Subtype.ext at heq
+        apply heq
+      · --onto f'
+        define; intros y
+        have h4:= y.property
+        define at h4; obtain x h5 from h4
+        exists  ⟨x.val, h5.left⟩
+        unfold f'; simp
+        rw [Subtype.mk_eq_mk]
+        apply h5.right
+    done
+
+lemma Lemma_8_1_8b: ∀ (n: Nat), ∀ D ⊆ I n, finite D := by
+  by_induc
+  · --base
+    intros D h1
+    define at h1
+    have h2: empty D := by
+      by_contra h3; define at h3; double_neg at h3
+      obtain x h2 from h3; clear h3
+      apply h1 at h2
+      define at h2; linarith
+      done
+    rw [← zero_elts_iff_empty] at h2
+    exists 0
+  · --induction
+    intros n h1 D h2
+    by_cases h3: n ∈ D
+    · --n ∈ D
+      have h4: D \ {n} ⊆ I n := by
+        define
+        intros a g1
+        have g2 := g1.left; apply h2 at g2
+        define at g2
+        have g3 := g1.right; define at g3
+        define
+        apply Nat.le_of_lt_add_one at g2
+        apply Nat.lt_of_le_of_ne g2 g3
+        done
+      apply h1 at h4
+      obtain m h5 from h4
+      obtain f h6 from h5
+      exists m + 1
+      set f' : ↑(I (m + 1)) → ↑D := fun x =>
+        if test: x.val < m
+        then ⟨f ⟨x.val, by define; apply test⟩, by
+          have h7 := ↑(f ⟨↑x, by define; apply test⟩).property
+          apply h7.left
+          ⟩
+        else Subtype_elt h3
+      exists f'
+      apply And.intro
+      · --one_to_one
+        define; intros x1 x2 heq
+        unfold f' at heq
+        by_cases g1: x1 < m
+        · by_cases g2: x2 < m
+          · --x1 < m and x2 < m
+            rw [dif_pos g1, dif_pos g2] at heq
+            simp at heq
+            apply Subtype.ext at heq
+            apply h6.left at heq
+            rw [Subtype.mk_eq_mk] at heq
+            apply Subtype.ext at heq
+            apply heq
+          · --x1 < m and x2 >= m
+            rw [dif_pos g1, dif_neg g2, Subtype_elt] at heq
+            rw [Subtype.mk_eq_mk] at heq
+            have g3 := (f ⟨x1, by define; apply g1⟩).property
+            rw [heq] at g3
+            have g4 := g3.right
+            contradict g4; rfl
+        · by_cases g2: x2 < m
+          · --x1 >= m and x2 < m
+            rw [dif_neg g1, dif_pos g2, Subtype_elt] at heq
+            rw [Subtype.mk_eq_mk] at heq
+            have g3 := (f ⟨x2, by define; apply g2⟩).property
+            rw [← heq] at g3
+            have g4 := g3.right
+            contradict g4; rfl
+          · --x1 >= m and x2 >= m
+            have g3 := x1.property; define at g3
+            have g4 := x2.property; define at g4
+            have g5 : x1 = m := by
+              linarith
+            have g6 : x2 = m := by
+              linarith
+            apply Subtype.ext
+            rw [g5, g6]
+      · --onto
+        define; intros y
+        by_cases g1: y = n
+        · -- y = n
+          exists ⟨m, by define; linarith⟩
+          unfold f'
+          rw [dif_neg, Subtype_elt, Subtype.mk_eq_mk]
+          rw [g1]
+          linarith
+        · -- y ≠ n
+          have g2 := h6.right
+          define at g2
+          have g3 := by apply g2 ⟨y, by
+            define
+            apply And.intro y.property
+            apply g1
+            ⟩
+          obtain x g4 from g3
+          exists ⟨x, by define; have g5 := x.property; define at g5; linarith⟩
+          unfold f'
+          have g6 := x.property; define at g6
+          rw [dif_pos g6]; simp
+          rw [Subtype.mk_eq_mk, g4]
+    · -- n ∉ D
+      have h4: D ⊆ I n := by
+        define; intros a h4
+        have g1 := h4
+        apply h2 at h4; define at h4
+        have h5 := by apply Nat.le_of_lt_add_one h4
+        have h6 : a ≠ n := by
+          contradict h3 with g2
+          rw [←g2]; apply g1
+        define; apply Nat.lt_of_le_of_ne h5 h6
+        done
+      apply h1
+      apply h4
+    done
 
 -- 15.
 theorem Exercise_8_1_8b {U : Type} {A B : Set U}
-    (h1 : finite A) (h2 : B ⊆ A) : finite B := sorry
+    (h1 : finite A) (h2 : B ⊆ A) : finite B := by
+    define at h1
+    obtain n h3 from h1; clear h1
+    apply Theorem_8_1_3_2 at h3
+    have h4:= by apply equinum_sub h3 h2
+    obtain D h5 from h4; clear h4
+    have h6 := h5.left
+    have h7 := h5.right
+    clear h5
+    have h8 := by apply Lemma_8_1_8b n D h6
+    obtain m h9 from h8; clear h8
+    apply Theorem_8_1_3_2 at h7
+    exists m
+    apply Theorem_8_1_3_3 h9 h7
+    done
 
 -- 16.
+lemma finite_bdd_aux : ∀ (n : Nat) (A : Set Nat), numElts A n →
+    ∃ (m : Nat), ∀ k ∈ A, k < m := by
+  by_induc
+  · -- Base case: numElts A 0
+    intros A h1
+    exists 0
+    intros n h2
+    have h3 : empty A := by
+      rw [← zero_elts_iff_empty, numElts_def]
+      apply h1
+    define at h3
+    contradict h3 with h4
+    exact ⟨n, h2⟩
+  · -- Inductive step
+    intros k ih A h1
+    by_cases h2 : empty A
+    · -- A is empty
+      exists 0
+      intros n h3
+      define at h2
+      contradict h2 with h4
+      exact ⟨n, h3⟩
+    · -- A is nonempty
+      define at h2
+      push_neg at h2
+      obtain a h3 from h2
+      have h4 : numElts (A \ {a}) k := remove_one_numElts h1 h3
+      have h5 := ih (A \ {a}) h4
+      obtain m' h6 from h5
+      exists max m' (a + 1)
+      intros n h7
+      by_cases h8 : n = a
+      · -- n = a
+        rw [h8]
+        have : a < a + 1 := by linarith
+        have : a + 1 ≤ max m' (a + 1) := Nat.le_max_right m' (a + 1)
+        linarith
+      · -- n ≠ a
+        have h9 : n ∈ A \ {a} := by
+          define
+          apply And.intro h7
+          define
+          apply h8
+        apply h6 at h9
+        have : m' ≤ max m' (a + 1) := Nat.le_max_left m' (a + 1)
+        linarith
+  done
+
 theorem finite_bdd {A : Set Nat} (h : finite A) :
-    ∃ (m : Nat), ∀ n ∈ A, n < m := sorry
+    ∃ (m : Nat), ∀ n ∈ A, n < m := by
+  obtain n h1 from h
+  apply finite_bdd_aux n A h1
+  done
 
 -- 17.
-lemma N_not_finite : ¬finite Nat := sorry
+lemma N_not_finite : ¬finite Nat := by
+  by_contra h
+  -- h : finite Nat
+  define at h
+  obtain n h1 from h
+  -- h1 : I n ∼ Nat
+  have h2 : Univ Nat ∼ Nat := univ_equinum_type Nat
+  apply Theorem_8_1_3_2 at h2
+  -- h2 : Nat ∼ Univ Nat
+  have h3 : I n ∼ Univ Nat := Theorem_8_1_3_3 h1 h2
+  -- Now Univ Nat has n elements
+  have h4 : finite ↑(Univ Nat) := ⟨n, h3⟩
+  have h5 := finite_bdd h4
+  obtain m h6 from h5
+  -- h6 : ∀ n ∈ Univ Nat, n < m
+  have h7 : m ∈ Univ Nat := by
+    define
+    trivial
+  have h8 := h6 m h7
+  -- h8 : m < m
+  linarith
+  done
 
 -- 18.
 theorem denum_not_finite (U : Type)
-    (h : denum U) : ¬finite U := sorry
+    (h : denum U) : ¬finite U := by
+    rw [denum_def] at h
+    have h1 := N_not_finite
+    contradict h1 with h2; clear h1
+    obtain n h3 from h2
+    apply Theorem_8_1_3_2 at h
+    exists n
+    apply Theorem_8_1_3_3 h3 h
+    done
 
 -- 19.
 --Hint:  Use Like_Exercise_6_2_16 from the exercises of Section 6.2.
+theorem Like_Exercise_6_2_16 {A : Type} (f : A → A)
+    (h : one_to_one f) : ∀ (n : Nat) (B : Set A), numElts B n →
+    closed f B → ∀ y ∈ B, ∃ x ∈ B, f x = y := sorry
+
 theorem Exercise_6_2_16 {U : Type} {f : U → U}
-    (h1 : one_to_one f) (h2 : finite U) : onto f := sorry
+    (h1 : one_to_one f) (h2 : finite U) : onto f := by
+    obtain n h3 from h2
+    have h4 : Univ U ∼ U := univ_equinum_type U
+    apply Theorem_8_1_3_2 at h4
+    have h5 := by apply Theorem_8_1_3_3 h3 h4
+    rw [← numElts_def] at h5
+    have h6: closed f (Univ U) := by
+      define
+      intros x g1
+      define
+      trivial
+    have h7: ∀ y ∈ (Univ U), ∃ x ∈ (Univ U), f x = y := by
+      apply Like_Exercise_6_2_16 f h1 n (Univ U) h5 h6
+    define; intros y
+    have h8 := by apply h7 y; define; trivial
+    obtain x h9 from h8
+    exists x; apply h9.right
+    done
 
 /- Section 8.2 -/
 -- 1.
