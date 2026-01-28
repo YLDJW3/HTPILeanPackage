@@ -1284,26 +1284,225 @@ theorem Exercise_6_2_16 {U : Type} {f : U → U}
 /- Section 8.2 -/
 -- 1.
 lemma pair_ctble {U : Type}
-    (a b : U) : ctble ↑({a, b} : Set U) := sorry
+    (a b : U) : ctble ↑({a, b} : Set U) := by
+    define
+    apply Or.inl
+    by_cases h: a = b
+    · -- a = b
+      exists 1
+      rw [h]
+      simp
+      rw [← numElts_def]
+      apply singleton_one_elt
+    · -- a ≠ b
+      exists 2
+      apply Theorem_8_1_3_2
+      define
+      set f: ↑({a, b}: Set U) → ↑(I 2) := fun x =>
+        if x.val = a
+        then ⟨0, by define; linarith⟩
+        else ⟨1, by define; linarith⟩
+      exists f
+      apply And.intro
+      · --one_to_one
+        define; intros x1 x2 heq
+        unfold f at heq
+        by_cases hx1: x1.val = a
+        · by_cases hx2: x2.val = a
+          · --x1 = a, x2 = a
+            apply Subtype.ext
+            rw [hx1, hx2]
+          · --x1 = a, not x2 = a
+            rw [if_pos hx1, if_neg hx2, Subtype.mk_eq_mk] at heq
+            linarith
+        · by_cases hx2: x2.val = a
+          · --not x1 = a, x2 = a
+            rw [if_neg hx1, if_pos hx2, Subtype.mk_eq_mk] at heq
+            linarith
+          · --not x1 = a, not x2 = a
+            apply Subtype.ext
+            have h1: x1 = b := by
+              have g1:= x1.property
+              define at g1
+              disj_syll g1 hx1
+              apply g1
+            have h2: x2 = b := by
+              have g2:= x2.property
+              define at g2
+              disj_syll g2 hx2
+              apply g2
+            rw [h1, h2]
+      · --onto
+        define
+        intros y
+        by_cases h1: y.val = 0
+        · --y = 0
+          exists ⟨a, by define; apply Or.inl; rfl⟩
+          unfold f
+          rw [if_pos, Subtype.mk_eq_mk, h1]
+          rfl
+        · --y = 1
+          have h2: y.val = 1 := by
+            have h3:= y.property
+            define at h3
+            have h4 := by apply Nat.le_of_lt_add_one h3
+            have h5 := by apply Nat.pos_of_ne_zero h1
+            linarith
+          exists ⟨b, by define; apply Or.inr; rfl⟩
+          unfold f
+          have h3 : ¬b = a := by
+            contradict h with h3
+            rw [h3]
+          rw [if_neg h3, Subtype.mk_eq_mk, h2]
+    done
 
 -- 2.
 --Hint:  Use the previous exercise and Theorem_8_2_2
 theorem Theorem_8_2_1_2 {U : Type} {A B : Set U}
-    (h1 : ctble A) (h2 : ctble B) : ctble ↑(A ∪ B) := sorry
+    (h1 : ctble A) (h2 : ctble B) : ctble ↑(A ∪ B) := by
+    set F := {A, B}
+    have g1 : ctble F := by apply pair_ctble A B
+    have g2 : ctble (⋃₀F) := by
+      apply Theorem_8_2_2
+      apply g1
+      intros X h3; define at h3
+      by_cases on h3
+      · rw [h3]; apply h1
+      · define at h3; rw [h3]; apply h2
+      done
+    have g3: ⋃₀ F = A ∪ B := by
+      apply Set.ext
+      intros x; apply Iff.intro
+      · intros h3; define at h3
+        obtain X h4 from h3; clear h3
+        have h5 := h4.left; define at h5
+        by_cases on h5
+        apply Or.inl
+        rw [← h5]; apply h4.right
+        apply Or.inr; define at h5
+        rw [← h5]; apply h4.right
+      · intros h3; by_cases on h3
+        define; exists A
+        apply And.intro _ h3
+        define; apply Or.inl
+        rfl
+        define; exists B
+        apply And.intro _ h3
+        define; apply Or.inr
+        rfl
+      done
+    rw [g3] at g2
+    apply g2
+    done
 
 -- 3.
 lemma remove_empty_union_eq {U : Type} (F : Set (Set U)) :
-    ⋃₀ {A : Set U | A ∈ F ∧ ¬empty A} = ⋃₀ F := sorry
+    ⋃₀ {A : Set U | A ∈ F ∧ ¬empty A} = ⋃₀ F := by
+    apply Set.ext; intros x; apply Iff.intro
+    · --x ∈ ⋃₀ {A : Set U | A ∈ F ∧ ¬empty A} → x ∈ ⋃₀ F
+      intros h1; define at h1
+      obtain X h2 from h1; clear h1
+      have h3 := h2.left; define at h3
+      exists X
+      apply And.intro h3.left h2.right
+    · --x ∈ ⋃₀ F → x ∈ ⋃₀ {A : Set U | A ∈ F ∧ ¬empty A}
+      intros h1
+      obtain X h2 from h1
+      define; exists X
+      apply And.intro _ h2.right
+      define
+      apply And.intro h2.left
+      define; double_neg
+      exists x; apply h2.right
+    done
 
 -- 4.
 lemma seq_cons_image {U : Type} (A : Set U) (n : Nat) :
     image (seq_cons U) (A ×ₛ (seq_by_length A n)) =
-      seq_by_length A (n + 1) := sorry
+      seq_by_length A (n + 1) := by
+    apply Set.ext; intros L; apply Iff.intro
+    · --l ∈ image (seq_cons U) (A ×ₛ seq_by_length A n) → l ∈ seq_by_length A (n + 1)
+      intros h1; define at h1
+      obtain l h2 from h1; clear h1
+      have h3 := h2.left; define at h3
+      have h4 := h2.right
+      have h5 := h3.right; define at h5
+      have h6 := h5.left; define at h6
+      define; apply And.intro
+      · --l ∈ seq A
+        rw [← h2.right]
+        define
+        intros x g1
+        rw [seq_cons_def] at g1
+        rw [List.mem_cons] at g1
+        by_cases on g1
+        · rw [g1]; apply h3.left
+        · apply h6; apply g1
+      · --L.length = n + 1
+        rw [← h4]
+        rw [seq_cons, List.length_cons]
+        rw [h5.right]
+    · --L ∈ seq_by_length A (n + 1) → L ∈ image (seq_cons U) (A ×ₛ seq_by_length A n)
+      intros h1; define at h1
+      have h2 := h1.left; define at h2
+      have h3 := h1.right; clear h1
+      define
+      have t1 := h3
+      apply List.exists_cons_of_length_eq_add_one at t1
+      obtain h t2 from t1
+      obtain l t3 from t2
+      clear t1; clear t2
+      exists (h, l)
+      apply And.intro
+      · --(h, l) ∈ A ×ₛ seq_by_length A n
+        define; apply And.intro
+        · --h ∈ A
+          apply h2; rw [t3]
+          apply List.head_mem
+          rw [List.ne_nil_iff_exists_cons]
+          exists h; exists l
+        · --l ∈ seq_by_length A n
+          define; apply And.intro
+          · --l ∈ seq A
+            define; intros x h4
+            apply h2; rw [t3]
+            apply List.mem_cons_of_mem
+            apply h4
+          · --l.length = n
+            rw [t3] at h3
+            rw [List.length_cons] at h3
+            linarith
+      · --seq_cons U (h, l) = L
+        rw [t3]
+        rfl
+    done
 
 -- 5.
 --Hint:  Apply Theorem_8_2_4 to the set Univ U
 theorem Theorem_8_2_4_type {U : Type}
-    (h : ctble U) : ctble (List U) := sorry
+    (h : ctble U) : ctble (List U) := by
+    have h1 := by apply univ_equinum_type U
+    have h2: ctble (Univ U) := by
+      apply ctble_set_of_ctble_type h (Univ U)
+    have h3 := by apply Theorem_8_2_4 h2
+    have h5 : Univ (List U) ∼ List U := by apply univ_equinum_type (List U)
+    have h6 : seq (Univ U) = Univ (List U) := by
+      nth_rw 2 [Univ]
+      rw [seq]
+      apply Set.ext; intros l; apply Iff.intro
+      · --(->)
+        intros g1; define at g1
+        define; trivial
+      · --(<-)
+        intros g1
+        define; intros x g2
+        define; trivial
+      done
+    have h4 : seq (Univ U) ∼ List U := by
+      rw [h6]
+      apply h5
+    apply ctble_of_ctble_equinum h4 h3
+    done
 
 -- 6.
 def list_to_set (U : Type) (l : List U) : Set U := {x : U | x ∈ l}
@@ -1312,17 +1511,113 @@ lemma list_to_set_def (U : Type) (l : List U) (x : U) :
     x ∈ list_to_set U l ↔ x ∈ l := by rfl
 
 --Hint:  Use induction on the size of A
+lemma set_from_list_aux {U: Type}: ∀ n: Nat, ∀ A: Set U,
+    finite A → numElts A n → ∃ (l : List U), list_to_set U l = A := by
+    by_induc
+    · -- n = 0
+      intros A h1 h2
+      exists []
+      apply Set.ext; intros x; apply Iff.intro
+      · intros h3
+        have h4 : x ∈ [] := by apply h3
+        rw [List.mem_nil_iff] at h4
+        absurd h4
+        trivial
+      · intros h3
+        rw [zero_elts_iff_empty] at h2
+        contradict h2
+        exists x
+    · --induction case
+      intros n ih A h1 h2
+      -- obtain some element x from A
+      -- remove x to get a N-element set, and apply ih to get list tail
+      -- concat x::tail to obtain the required list
+      have tmp: n + 1 > 0 := by linarith
+      have h3:= by apply nonempty_of_pos_numElts h2 tmp
+      obtain h h4 from h3; clear tmp; clear h3
+      have g1:= by apply remove_one_numElts h2 h4
+      have g2: finite ↑(A \ {h}) := by
+        exists n
+      have h5 := by apply ih (A \ {h}) g2 g1
+      obtain l h6 from h5; clear h5
+      exists h::l
+      apply Set.ext; intros x; apply Iff.intro
+      · --x ∈ list_to_set U (h :: l) → x ∈ A
+        intros h7
+        have h8: x ∈ h::l := by apply h7
+        rw [List.mem_cons] at h8
+        by_cases on h8
+        · rw [h8]; apply h4
+        · rw [← list_to_set_def] at h8
+          rw [h6] at h8
+          apply h8.left
+      · --x ∈ A → x ∈ list_to_set U (h :: l)
+        intros h7
+        rw [list_to_set_def]
+        rw [List.mem_cons]
+        by_cases h8: x = h
+        · apply Or.inl h8
+        · apply Or.inr
+          rw [← list_to_set_def]
+          rw [h6]
+          apply And.intro h7 h8
+      done
+
 lemma set_from_list {U : Type} {A : Set U} (h : finite A) :
-    ∃ (l : List U), list_to_set U l = A := sorry
+    ∃ (l : List U), list_to_set U l = A := by
+    obtain n h1 from h
+    rw [← numElts_def] at h1
+    apply set_from_list_aux n
+    apply h; apply h1
+    done
 
 -- 7.
 --Hint:  Use the previous exercise and Theorem_8_2_4_type
 theorem Like_Exercise_8_2_4 (U : Type) (h : ctble U) :
-    ctble {X : Set U | finite X} := sorry
+    ctble {X : Set U | finite X} := by
+    have h1 := by apply Theorem_8_2_4_type h
+    have h2 : ∀ (A : Set (List U)), ctble ↑A := by
+      apply ctble_set_of_ctble_type h1
+    set g : {X : Set U | finite X} → List U := fun X =>
+      Classical.choose (set_from_list X.property)
+    have hg : ∀ (X : {X : Set U | finite X}), list_to_set U (g X) = X.val := by
+      intro X
+      exact Classical.choose_spec (set_from_list X.property)
+    have h3: one_to_one g := by
+      define; intros x1 x2 heq
+      apply Subtype.ext
+      have g1 := hg x1
+      have g2 := hg x2
+      rw [← g1, ← g2, heq]
+    rw [Theorem_8_1_5_3_type] at h1
+    obtain f hf from h1
+    rw [Theorem_8_1_5_3_type]
+    exists f ∘ g
+    apply Theorem_5_2_5_1
+    apply h3; apply hf
+    done
 
 -- 8.
 theorem Exercise_8_2_6b (U V W : Type) :
-     ((U × V) → W) ∼ (U → V → W) := sorry
+     ((U × V) → W) ∼ (U → V → W) := by
+    exists fun f u v => f (u, v)
+    apply And.intro
+    · --one_to_one
+      define; intros f1 f2 heq
+      apply funext
+      intros x
+      rw [funext_iff] at heq
+      have h1 := by apply heq x.1
+      rw [funext_iff] at h1
+      have h2 := by apply h1 x.2
+      clear heq; clear h1
+      simp at h2
+      apply h2
+    · --onto
+      define; intros f
+      set g : U × V → W := fun x => f x.1 x.2
+      exists g
+    done
 
 -- 9.
 theorem Like_Exercise_8_2_7 : ∃ (P : Set (Set Nat)),
